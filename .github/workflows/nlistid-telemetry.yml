@@ -1,0 +1,67 @@
+name: nlistid-telemetry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nlistid-telemetry/src/Nlist.Telemetry/**'
+      - 'nlistid-telemetry/src/Nlist.Telemetry.Abstractions/**'
+      - '.github/workflows/nlistid-telemetry.yml'
+  workflow_dispatch:
+
+env:
+  VERSION: 1.1.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show commit info
+        run: |
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Committed by: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
+      # command line becomes a global MSBuild property that cascades into the ProjectReference
+      # restore graph and makes NuGet throw "Ambiguous project name".
+      - name: Pack Nlist.Telemetry.Abstractions
+        run: >
+          dotnet pack nlistid-telemetry/src/Nlist.Telemetry.Abstractions/Nlist.Telemetry.Abstractions.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="Contract types for Nlist.Telemetry"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Pack Nlist.Telemetry
+        run: >
+          dotnet pack nlistid-telemetry/src/Nlist.Telemetry/Nlist.Telemetry.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="A simple Telemetry pattern library for .NET"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Push to GitHub Packages
+        run: >
+          dotnet nuget push ./nupkgs/*.nupkg
+          --source https://nuget.pkg.github.com/nlistid/index.json
+          --api-key ${{ secrets.GITHUB_TOKEN }}
+          --skip-duplicate
