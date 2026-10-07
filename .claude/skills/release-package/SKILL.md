@@ -1,13 +1,13 @@
 ---
 name: release-package
-description: Cut a release of Nlist.Results or Nlist.Telemetry by bumping the workflow's VERSION and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of either package.
+description: Cut a release of the Nlist.Results or Nlist.Telemetry package family by bumping the workflow's VERSION and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of either package.
 disable-model-invocation: true
 ---
 
 Release one of this repo's two package families (`results` → `Nlist.Results.Abstractions` +
-`Nlist.Results`, or `telemetry` → `Nlist.Telemetry.Abstractions` + `Nlist.Telemetry`). Each family
-publishes via its own workflow, which packs and pushes **both** the main package and its
-`*.Abstractions` companion under the same version — there is no combined release step across
+`Nlist.Results` + `Nlist.Results.AspNetCore`, or `telemetry` → `Nlist.Telemetry.Abstractions` +
+`Nlist.Telemetry`). Each family publishes via its own workflow, which packs and pushes every
+package in the family under the same version — there is no combined release step across
 families, and no "already published" guard, so the version bump itself is what makes the push
 succeed or fail.
 
@@ -18,8 +18,8 @@ Use `$ARGUMENTS` to pick the family and target version, e.g. `/release-package r
 ## Steps
 
 1. **Identify the workflow file.**
-   - `results` → `.github/workflows/nlistid-results.yml`, publishes `Nlist.Results.Abstractions`
-     and `Nlist.Results` (same `env.VERSION`)
+   - `results` → `.github/workflows/nlistid-results.yml`, publishes `Nlist.Results.Abstractions`,
+     `Nlist.Results` and `Nlist.Results.AspNetCore` (same `env.VERSION`)
    - `telemetry` → `.github/workflows/nlistid-telemetry.yml`, publishes
      `Nlist.Telemetry.Abstractions` and `Nlist.Telemetry` (same `env.VERSION`)
 
@@ -27,34 +27,30 @@ Use `$ARGUMENTS` to pick the family and target version, e.g. `/release-package r
    ```bash
    gh api /orgs/nlistid/packages/nuget/<PackageId>/versions --jq '.[].name'
    ```
-   `<PackageId>` is the main package's id (`Nlist.Results` or `Nlist.Telemetry`) — both it and its
-   `*.Abstractions` companion always ship together at the same version, so checking one is enough.
+   `<PackageId>` is the main package's id (`Nlist.Results` or `Nlist.Telemetry`) — every package
+   in a family ships together at the same version, so checking one is enough.
    If this 404s (e.g. no org access from this token), fall back to comparing against the
    `env.VERSION` already in the workflow file.
 
 3. **Edit `env.VERSION`** in the workflow file to the requested version.
 
-4. **If releasing `Nlist.Results`**, remind the user (or update, if asked) the pinned
-   `PackageReference` version in `nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj` —
-   it does not move automatically and a stale pin means `Nlist.Results.AspNetCore` keeps building against
-   the old version.
-
-5. **Run local checks first** so CI isn't the first place a problem shows up — build and pack
-   both projects in the family (the `*.Abstractions` project first, since the main project's
-   `ProjectReference` pulls it in):
+4. **Run local checks first** so CI isn't the first place a problem shows up — build every
+   project in the family. For `results`, building `Nlist.Results.AspNetCore` also builds the other
+   two through its `ProjectReference`s, but run `dotnet format` in each project:
    ```bash
-   cd <abstractions project dir> && dotnet format --verify-no-changes && dotnet build
-   cd <main project dir> && dotnet format --verify-no-changes && dotnet build
+   cd <project dir> && dotnet format --verify-no-changes && dotnet build
    ```
+   No version pins need editing: sibling dependencies are `ProjectReference`s, which `dotnet pack`
+   turns into NuGet dependencies at the version being packed.
    Do **not** pass `/p:PackageId=...` on a manual `dotnet pack` test — `PackageId` is set inside
    each `.csproj` deliberately, because a command-line override becomes a global MSBuild property
    that cascades into the `ProjectReference` restore graph and makes NuGet throw
    `Ambiguous project name`, failing the pack step outright.
 
-6. **Commit and push to `main`.** The version bump and the release push must be the same push —
+5. **Commit and push to `main`.** The version bump and the release push must be the same push —
    editing the workflow file is itself what re-triggers it.
 
-7. **Verify the publish landed:**
+6. **Verify the publish landed** (a failed push step usually means the version already exists):
    ```bash
    gh run list --workflow=<workflow-file> --limit 1
    gh run watch   # if the run is still in progress

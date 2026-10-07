@@ -8,13 +8,16 @@ Monorepo of two independent .NET package families, each published separately to 
 There is no root `.sln` — build/restore/format from inside each project's directory, not the repo root.
 
 - `nlistid-results/src/Nlist.Results` — railway-oriented `Result<T>` type.
-- `nlistid-results/src/Nlist.Results.Abstractions` — contract types only, no production dependencies.
+- `nlistid-results/src/Nlist.Results.Abstractions` — the `IResult<T>` contract only; no runtime
+  dependencies (StyleCop is its only `PackageReference`, private and build-only).
 - `nlistid-results/src/Nlist.Results.AspNetCore` — maps `Nlist.Results` onto ASP.NET Core problem-details
-  responses. Uses **conditional references**: `ProjectReference` for local builds, `PackageReference`
-  during pack (when `NlistResultsVersion` is set by the workflow). Edit `Nlist.Results` freely
-  locally; it builds together with AspNetCore.
-- `nlistid-results/src/Nlist.Results.Test` — empty placeholder directory, no project file yet.
-  Don't assume a test project exists here.
+  responses (`HttpResultFactory`). Plain `ProjectReference`s to `Nlist.Results` and
+  `Nlist.Results.Abstractions` — see [References and packing](#references-and-packing). Edit
+  `Nlist.Results` freely locally; it builds together with AspNetCore.
+- `nlistid-results/src/Nlist.Results.Test` — MSTest + Moq test project (`net10.0`); so far it
+  holds only the template's empty `Test1`. Run with `dotnet test`. Not packed or published.
+- `nlistid-results/SPEC.md` — the behavioral contract for the results family (type set, `Bind`/
+  `Map` propagation, HTTP mapping). Keep it in sync when changing any of those.
 - `nlistid-telemetry/src/Nlist.Telemetry` — OpenTelemetry-shaped facade (`ITelemetry<T>`).
 - `nlistid-telemetry/src/Nlist.Telemetry.Abstractions` — interfaces only. Its `.csproj` has a
   standing rule in a comment: **this project must never take a `PackageReference`** — keep it
@@ -28,50 +31,41 @@ dotnet build
 dotnet format --verify-no-changes   # formatting gate; run before committing in nlistid-results
 ```
 
-`nlistid-results` projects set `EnforceCodeStyleInBuild=true` and use StyleCop + a strict
-`.editorconfig` (4-space indent, file-scoped namespaces required, `I`-prefixed interfaces, `_`-prefixed
-private fields). `nlistid-telemetry` has no `.editorconfig` of its own — match the surrounding code.
+The three `nlistid-results` library projects set `EnforceCodeStyleInBuild=true` and use StyleCop;
+`nlistid-results/src/.editorconfig` applies to every project under it, including the test
+project (4-space indent, file-scoped namespaces as a warning, `I`-prefixed interfaces as a
+warning, camelCase private fields with no `_` prefix and `this.` qualification as suggestions —
+matching StyleCop's SA1309/SA1101). `nlistid-telemetry` has no `.editorconfig`
+or StyleCop — match the surrounding code (`this.`-qualified, non-prefixed private fields).
 
 ## Publishing
 
-Each package has its own workflow in `.github/workflows/`, triggered by a push to `main` touching
-that package's `src/**` or the workflow file itself:
+Each package family has its own workflow in `.github/workflows/`, triggered by a push to `main`
+touching one of its library projects' directories (the test project is not a trigger), the workflow
+file itself, or a manual `workflow_dispatch`:
 
 - `nlistid-results.yml` publishes all three `Nlist.Results.*` packages together: `Nlist.Results`,
   `Nlist.Results.Abstractions`, and `Nlist.Results.AspNetCore` at the same version.
-- `nlistid-telemetry.yml` publishes `Nlist.Telemetry` (not `Nlist.Telemetry.Abstractions`).
+- `nlistid-telemetry.yml` publishes `Nlist.Telemetry` and `Nlist.Telemetry.Abstractions` at the
+  same version.
 
 The version to publish is `env.VERSION`, hardcoded at the top of each workflow file — bumping it
-and pushing is what triggers a release; **there's no "already published" skip check**, so pushing
-without bumping `VERSION` just fails at the `dotnet nuget push` step (GitHub Packages rejects
-re-publishing an existing version). `AspNetCore` automatically pins to the same `Nlist.Results`
-version via the workflow's `/p:NlistResultsVersion=${{ env.VERSION }}` property — no hand edits needed.
+and pushing is what triggers a release. **There's no "already published" skip check**, so any run
+without a `VERSION` bump fails at `dotnet nuget push` (GitHub Packages rejects re-publishing an
+existing version). That includes a push touching a package's `src/**` without a bump, and
+re-running a release that already succeeded. The `/release-package` skill
+(`.claude/skills/release-package/SKILL.md`) walks through a release.
 
-## Conditional references pattern
+Set `PackageId` in each `.csproj`, never as `/p:PackageId=...` on the `dotnet pack` command line —
+that becomes a global MSBuild property, cascades into the `ProjectReference` restore graph, and
+NuGet throws `Ambiguous project name`.
 
-`Nlist.Results.AspNetCore` uses **conditional item groups** in its `.csproj` to switch between
-`ProjectReference` (local) and `PackageReference` (publish) based on the `NlistResultsVersion` property:
+## References and packing
 
-```xml
-<!-- Local build: no NlistResultsVersion property → uses ProjectReference -->
-<ItemGroup Condition="'$(NlistResultsVersion)' == ''">
-  <ProjectReference Include="..\Nlist.Results\Nlist.Results.csproj" />
-</ItemGroup>
+All sibling dependencies are plain `ProjectReference`s — there are no conditional item groups and
+no `PackageReference`s to `Nlist.*` packages. `dotnet pack` turns each `ProjectReference` into a
+NuGet dependency on that project's `PackageId` at the version being packed, so with a single
+`VERSION` per workflow the packages always reference each other at matching versions.
 
-<!-- Pack/publish: workflow passes /p:NlistResultsVersion=2.0.0 → uses PackageReference -->
-<ItemGroup Condition="'$(NlistResultsVersion)' != ''">
-  <PackageReference Include="Nlist.Results" Version="$(NlistResultsVersion)" />
-</ItemGroup>
-```
-
-**Benefits:**
-- **Local development**: `dotnet build` works without GitHub Packages setup. Edit `Nlist.Results` freely.
-- **Package publishing**: Workflow passes `NlistResultsVersion` at pack time, locks to exact version.
-- **Version sync**: Single `VERSION` in workflow bumps all 3 packages together.
-
-**Workflow integration** (nlistid-results.yml):
-```bash
-dotnet pack Nlist.Results.AspNetCore.csproj \
-  /p:Version=${{ env.VERSION }} \
-  /p:NlistResultsVersion=${{ env.VERSION }}  # ← activates PackageReference
-```
+- **Local development**: `dotnet build` works without GitHub Packages setup.
+- **Publishing**: no hand-pinned versions to update.

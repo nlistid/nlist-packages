@@ -11,12 +11,13 @@ duplicate the per-package usage docs (`src/*/README.md`), which show *how* to ca
 |---|---|---|
 | `Nlist.Results.Abstractions` | The contract surface: `IResult<T>`. No production dependencies. | nothing |
 | `Nlist.Results` | The concrete `Result<T>` hierarchy, `ResultFactory`, `Bind`/`Map`. | `Nlist.Results.Abstractions` |
-| `Nlist.Results.AspNetCore` | Maps `Result<T>` to ASP.NET Core HTTP responses. | `Nlist.Results` (published `PackageReference`, not `ProjectReference` — see [AGENTS.md](../docs/AGENTS.md)) |
-| `Nlist.Results.Test` | MSTest + Moq tests for `Nlist.Results` only. | `Nlist.Results` (`ProjectReference`) |
+| `Nlist.Results.AspNetCore` | Maps `Result<T>` to ASP.NET Core HTTP responses. | `Nlist.Results`, `Nlist.Results.Abstractions` (`ProjectReference` — see [AGENTS.md](../docs/AGENTS.md)) |
+| `Nlist.Results.Test` | MSTest + Moq tests for `Nlist.Results` only. | `Nlist.Results`, `Nlist.Results.Abstractions` (`ProjectReference`) |
 
-Dependency direction is one-way down this table. Nothing below `Nlist.Results.Abstractions` may
-depend back up — in particular, `Nlist.Results.Abstractions`'s `.csproj` must never take a
-`PackageReference`, so consumers can depend on the contract without pulling in anything else.
+Dependency direction is one-way down this table: a project may depend only on projects above it,
+never below. In particular, `Nlist.Results.Abstractions` must never take a runtime
+`PackageReference` (the private, build-only StyleCop analyzer is the only exception), so
+consumers can depend on the contract without pulling in anything else.
 
 ## 2. The `Result<T>` type contract
 
@@ -45,13 +46,15 @@ Invariants:
   `FailureResult<T>` itself, which requires a non-null `detail` — a bare 400 with nothing to say
   would be indistinguishable from any other failure, so the plain case is not allowed to be silent.
 - Adding a new failure type is a breaking change to this spec: every `switch` over `Result<T>`
-  in this repo (`Bind`, `Map`, and `HttpResultFactory`) enumerates the set by name, not by a
-  catch-all `FailureResult<T> r` branch *first* — the catch-all exists only as the final arm,
-  after every named subtype. A new failure subtype that is not added to all three switches
-  silently inherits the `FailureResult<T>` behavior of whichever switch wasn't updated.
-- `RateLimitedFailureResult<T>` is the only failure subtype that carries a field beyond `Detail`
-  (`RetryAfter`, nullable). `Bind`/`Map` must propagate it, not just `Detail`, when preserving
-  the type across a chain (§3).
+  in this repo (`Bind`, `Map`, and `HttpResultFactory`) enumerates the set by name, with the
+  catch-all arm last — `_` in `Bind`/`Map`, `FailureResult<T> r` in `HttpResultFactory`. A new
+  failure subtype that is not added to all three switches silently inherits the plain
+  `FailureResult<T>` behavior of whichever switch wasn't updated (in `Bind`/`Map` that means it
+  is turned into a plain `FailureResult<TOut>` and its own `Code` becomes 400).
+- Three failure subtypes carry data beyond `Detail`: `ValidationFailureResult<T>` (`Errors`),
+  `RateLimitedFailureResult<T>` (`RetryAfter`, nullable), and `StatusCodeFailureResult<T>` (its
+  caller-supplied `Code`). `Bind`/`Map` must propagate that data, not just `Detail`, when
+  preserving the type across a chain (§3).
 - Every concrete type exposes a fixed `Code` (§4) matching its HTTP status: `SuccessResult<T>`
   200, `FailureResult<T>` 400, `NotFoundFailureResult<T>` 404, `ConflictFailureResult<T>` 409,
   `ValidationFailureResult<T>` 422, `RateLimitedFailureResult<T>` 429, `UnexpectedFailureResult<T>` 500,
@@ -70,7 +73,8 @@ Invariants:
   set in §2.
 - On any failure type, both `Bind` and `Map` short-circuit: the supplied function is never
   invoked, and a new instance of the *same* failure type is returned, carrying the original
-  `Detail` (and `Errors`, for `ValidationFailureResult<T>`) forward unchanged.
+  `Detail` forward unchanged — plus `Errors` for `ValidationFailureResult<T>`, `RetryAfter` for
+  `RateLimitedFailureResult<T>`, and `Code` for `StatusCodeFailureResult<T>`.
 - `Map` additionally transforms the success value (`T` → `TOut`); `Bind` delegates that decision
   to the supplied function, which itself returns a `Result<TOut>`.
 - Chaining `Bind`/`Map` any number of times preserves the *first* failure encountered — once a
@@ -85,9 +89,11 @@ Invariants:
 - `Code` on the interface means any alternate `IResult<T>` implementation (§1) must supply its
   own fixed status code per outcome, not just `IsSuccess`/`Value`/`Detail` — it is as much a part
   of the contract as the others, not an `Nlist.Results`-specific add-on.
-- `Result<T>` implements `IResult<T>`; this is the only implementation in this repo, but the
-  interface makes a second implementation (e.g. for a different package) possible without
-  changing `Nlist.Results.AspNetCore` or any consumer coded against the interface.
+- `Result<T>` implements `IResult<T>`; this is the only implementation in this repo. Consumers
+  coded against the interface would accept a second implementation unchanged, but
+  `Nlist.Results.AspNetCore` would not: `HttpResultFactory` takes an `IResult<T>` yet matches on
+  the concrete `Nlist.Results` types, and throws `InvalidOperationException` for anything else
+  (§6).
 
 ## 5. Problem details alignment contract
 
@@ -123,8 +129,8 @@ Invariants:
 
 ## 6. HTTP mapping contract (`Nlist.Results.AspNetCore`)
 
-`HttpResultFactory.ToHttpResult<T>` is a total function over the same closed type set as §2, and
-the mapping is fixed:
+`HttpResultFactory.ToHttpResult<T>` is a total function over the same closed type set as §2 (any
+other `IResult<T>` implementation throws `InvalidOperationException`), and the mapping is fixed:
 
 | Result type | Status | 
 |---|---|
@@ -162,14 +168,12 @@ Invariants:
 
 - All three packages (`Nlist.Results`, `Nlist.Results.Abstractions`, `Nlist.Results.AspNetCore`)
   are versioned and published together at the same `env.VERSION` from `nlistid-results.yml`.
-  `Nlist.Results.AspNetCore` pins `Nlist.Results` to an exact version via the workflow's
-  `/p:NlistResultsVersion` property — no hand edits needed when bumping. The version is resolved
-  at pack time, not at edit time.
-- During local development, `Nlist.Results.AspNetCore` uses a `ProjectReference` to `Nlist.Results`
-  (no GitHub Packages needed). During `dotnet pack` with `NlistResultsVersion` set, this
-  automatically switches to a `PackageReference`. A behavioral change to `Nlist.Results` (such as
-  a §2 type-set change) is invisible to `Nlist.Results.AspNetCore` package consumers until all
-  three are republished.
+- `Nlist.Results.AspNetCore` references `Nlist.Results` and `Nlist.Results.Abstractions` via
+  `ProjectReference` both locally and when packing; `dotnet pack` turns each into a NuGet
+  dependency at the version being packed, so the three packages always depend on each other at
+  matching versions — no hand edits needed when bumping. A behavioral change to `Nlist.Results`
+  (such as a §2 type-set change) is invisible to package consumers until all three are
+  republished.
 - There is no "already published" skip check in the publish workflow — pushing without bumping
   `VERSION` fails at `dotnet nuget push`, it does not silently no-op.
 - `Nlist.Results.Abstractions` must stay dependency-free indefinitely; this is a standing
@@ -180,7 +184,7 @@ Invariants:
 - Scope is `Nlist.Results` only — not `Nlist.Results.AspNetCore` (which has no test project of
   its own) and not `Nlist.Results.Abstractions` (contract-only, nothing to unit test).
   `Nlist.Results.Test` references `Nlist.Results` via `ProjectReference`, so it always tests
-  local source, unlike `Nlist.Results.AspNetCore`'s `PackageReference`.
+  local source. It currently holds only the template's empty `Test1` placeholder.
 - Moq is available for mocking collaborators in tests that exercise `Bind`/`Map` chains against
   fakes; `Result<T>` itself has no collaborators to mock — tests of the type hierarchy exercise
   it directly.

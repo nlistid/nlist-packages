@@ -69,7 +69,6 @@ jobs:
           --configuration Release
           --output ./nupkgs
           /p:Version=${{ env.VERSION }}
-          /p:NlistResultsVersion=${{ env.VERSION }}
           /p:Authors=nlistid
           /p:Description="ASP.NET Core HTTP result mapping for Nlist.Results"
           /p:RepositoryUrl=https://github.com/${{ github.repository }}
@@ -79,4 +78,3 @@ jobs:
           dotnet nuget push ./nupkgs/*.nupkg
           --source https://nuget.pkg.github.com/nlistid/index.json
           --api-key ${{ secrets.GITHUB_TOKEN }}
-          --skip-duplicate

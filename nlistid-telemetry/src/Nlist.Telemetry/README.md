@@ -75,9 +75,13 @@ using (var span = telemetry.Tracing.StartActiveSpan("Send enquiry emails"))
 }
 ```
 
-Disposing the span logs an Information entry with the elapsed time (`DurationMs`) - or, if
-`RecordException` was called first, an Error entry instead. A span can itself start a child
-span via `span.StartActiveSpan(...)`, nesting further.
+Disposing the span logs an Information entry (`"<name> completed."`) with the elapsed time
+(`DurationMs`) - or, if `RecordException` was called first, sets the span's status to Error and
+logs an Error entry (`"<name> failed."`) with the exception instead. A span can itself start a
+child span via `span.StartActiveSpan(...)`, nesting further, and also supports
+`SetAttribute(name, value)` and `AddEvent(name, properties)`. `StartActiveSpan` takes an optional
+`properties` array of `(Name, Value)` tuples, set as span attributes and repeated on the
+completion log entry.
 
 ### Logging - `telemetry.Logging`
 
@@ -90,8 +94,9 @@ telemetry.Logging.LogWarning("Contact rejected an invalid submission.");
 telemetry.Logging.LogError(exception, "Something failed.");
 ```
 
-Every line automatically carries the current `CorrelationId` (see below) plus the calling
-method name and source line.
+Every line automatically carries the current `CorrelationId` (see below), the calling method
+(`SourceMethod`, as `Type.Method`) and source line (`SourceLineNumber`). Each method also takes an
+optional `properties` array of `(Name, Value)` tuples, added as structured log state.
 
 ### Metrics - `telemetry.Metrics`
 
@@ -102,8 +107,9 @@ Increments named counters - OpenTelemetry's instrument for monotonically increas
 telemetry.Metrics.IncrementCounter("ContactFunctionRunCount");
 ```
 
-A counter is created once per name and reused for the life of the process - cheap to call
-repeatedly.
+Optional parameters set the increment (`value`, default 1), `tags`, `unit` and `description`. A
+counter is created once per name and reused for the life of the process - cheap to call
+repeatedly. `unit`/`description` only take effect on the first call for a given name.
 
 ### Baggage - `telemetry.Baggage`
 
@@ -116,6 +122,7 @@ read a value without it being threaded through every method signature in between
 telemetry.Baggage.SetBaggage("tenantId", "abc123");
 // ... much later, possibly in a different class ...
 var tenantId = telemetry.Baggage.GetBaggage("tenantId");
+telemetry.Baggage.RemoveBaggage("tenantId");
 ```
 
 ### Correlation - `telemetry.Correlation`
@@ -125,8 +132,8 @@ Correlation solves one specific, concrete problem: tying every log/span across a
 logical operation back together, even across a boundary where OpenTelemetry's own tracing
 can't help.
 
-That boundary shows up here because this app is a set of Azure Functions linked by storage
-queues: an HTTP trigger enqueues work, a queue trigger picks it up later. A queue trigger
+A typical case is a set of Azure Functions linked by storage queues: an HTTP trigger enqueues
+work, a queue trigger picks it up later. A queue trigger
 doesn't inherit the HTTP trigger's trace the way a child span would - each gets its own,
 unrelated TraceId - so without something else tying them together, nothing in your telemetry
 backend would show the two as related:
@@ -155,6 +162,8 @@ Metrics/       ITelemetryMetrics implementation
 Tracing/       ITelemetryTracing<T> / span implementation, and TelemetryTracer (this
                library's OpenTelemetry identity - the name a host registers to collect from)
 Telemetry.cs   ITelemetry<T> - the facade composing all five
+TelemetryServiceCollectionExtensions.cs
+               AddTelemetry() - DI registration
 ```
 
 `Nlist.Telemetry.Abstractions` holds just the interfaces (`ITelemetry<T>` and friends) with

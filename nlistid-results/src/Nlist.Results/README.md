@@ -93,9 +93,11 @@ mapping in `Nlist.Results.AspNetCore` is a rename-free pass-through:
 |---|---|
 | `detail` parameter, surfaced as `Detail` | `detail` |
 | `errors` parameter, surfaced as `Errors` | `errors` |
-| the failure type itself (`NotFoundFailureResult`, `ValidationFailureResult`, …) | `status`, `title` and `type` |
+| `Code` | `status` |
+| the failure type itself (`NotFoundFailureResult`, `ValidationFailureResult`, …) | `title` and `type` |
 
-`detail` is optional on `NotFound` and `Validation`. Leaving it `null` means "nothing to add
+`detail` is optional on every failure type except the plain `FailureResult<T>`. Leaving it `null`
+means "nothing to add
 beyond the failure kind", and the field is then **omitted** from the response rather than echoing
 the title:
 
@@ -168,11 +170,12 @@ A quick reference for which type to return, by situation:
 | A field is syntactically fine but semantically wrong in a way that isn't "validation" (e.g. a business rule with no per-field error) | `ResultFactory.Failure<T>(detail)` | The generic "your request was wrong" case |
 | A status code with no dedicated type fits better than any of the above | `ResultFactory.StatusCodeFailure<T>(code, detail)` | Escape hatch — carries whatever `code` the caller supplies |
 
-Rule of thumb: prefer the most specific type the situation supports. `DependencyError` and
-`RateLimited` exist specifically so a caller several layers up — or an automated retry
-policy — can tell "retry with backoff" (`RateLimited`, `DependencyError`) apart from "don't retry
-until the request changes" (`Failure`, `Validation`, `Conflict`, `NotFound`) apart from "retry
-is unlikely to help, something unhandled happened" (`Unexpected`). Reach for `StatusCodeFailure` only
+Rule of thumb: prefer the most specific type the situation supports. `DependencyFailure` and
+`RateLimitedFailure` exist specifically so a caller several layers up — or an automated retry
+policy — can tell "retry with backoff" (`RateLimitedFailure`, `DependencyFailure`) apart from
+"don't retry until the request changes" (`Failure`, `ValidationFailure`, `ConflictFailure`,
+`NotFoundFailure`) apart from "retry is unlikely to help, something unhandled happened"
+(`UnexpectedFailure`). Reach for `StatusCodeFailure` only
 when none of the named types fit and you need a specific status code anyway.
 
 ## Advanced Patterns
@@ -209,13 +212,10 @@ public class UserRepository(IDatabase db)
 
 ### Async Chains
 
-```csharp
-Task<Result<UserDto>> GetUserAsync(int id) =>
-    GetUserFromDb(id)
-        .Bind(user => ValidateUserAsync(user))
-        .Map(user => UserDto.FromUser(user));
+`Bind`/`Map` are synchronous and are defined on `Result<T>`, not on `Task<Result<T>>`. Await each
+async step, then compose:
 
-// Note: Bind/Map work synchronously; wrap async operations externally
+```csharp
 async Task<Result<UserDto>> GetUserWithDetailsAsync(int id)
 {
     var userResult = await GetUserFromDb(id);

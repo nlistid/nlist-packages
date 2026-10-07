@@ -64,4 +64,3 @@ jobs:
           dotnet nuget push ./nupkgs/*.nupkg
           --source https://nuget.pkg.github.com/nlistid/index.json
           --api-key ${{ secrets.GITHUB_TOKEN }}
-          --skip-duplicate
