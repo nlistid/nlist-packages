@@ -44,7 +44,7 @@ instrumentation library identity instead of `TelemetryTracer.Name`/`.Version` - 
 itself apart from another app that also uses this library in the same backend:
 
 ```csharp
-services.AddTelemetry("MyApp.Functions", "2.0.0");
+services.AddTelemetry("MyApp.Functions", "2.0.1");
 ```
 
 Whatever name is passed here must be the same one the host registers against above - a
