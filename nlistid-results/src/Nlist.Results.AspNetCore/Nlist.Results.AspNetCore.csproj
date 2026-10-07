@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Nlist.Results.AspNetCore</PackageId>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- ProjectReference, not PackageReference: builds against local source, and `dotnet pack`
+       turns each one into a NuGet dependency on that project's PackageId/Version automatically.
+       See https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#project-to-project-references -->
+  <ItemGroup>
+    <ProjectReference Include="..\Nlist.Results.Abstractions\Nlist.Results.Abstractions.csproj" />
+    <ProjectReference Include="..\Nlist.Results\Nlist.Results.csproj" />
+  </ItemGroup>
+
+</Project>

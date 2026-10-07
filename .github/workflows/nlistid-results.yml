@@ -1,0 +1,82 @@
+name: nlistid-results
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nlistid-results/src/Nlist.Results/**'
+      - 'nlistid-results/src/Nlist.Results.Abstractions/**'
+      - 'nlistid-results/src/Nlist.Results.AspNetCore/**'
+      - '.github/workflows/nlistid-results.yml'
+  workflow_dispatch:
+
+env:
+  VERSION: 2.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print welcome message
+        run: echo "Hello! Code was pushed to ${{ github.ref }}"
+
+      - name: Show commit info
+        run: |
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Committed by: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
+      # command line becomes a global MSBuild property that cascades into the ProjectReference
+      # restore graph and makes NuGet throw "Ambiguous project name".
+      - name: Pack Nlist.Results.Abstractions
+        run: >
+          dotnet pack nlistid-results/src/Nlist.Results.Abstractions/Nlist.Results.Abstractions.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="Contract types for Nlist.Results"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Pack Nlist.Results
+        run: >
+          dotnet pack nlistid-results/src/Nlist.Results/Nlist.Results.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="A simple Result pattern library for .NET"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Pack Nlist.Results.AspNetCore
+        run: >
+          dotnet pack nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:NlistResultsVersion=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="ASP.NET Core HTTP result mapping for Nlist.Results"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Push to GitHub Packages
+        run: >
+          dotnet nuget push ./nupkgs/*.nupkg
+          --source https://nuget.pkg.github.com/nlistid/index.json
+          --api-key ${{ secrets.GITHUB_TOKEN }}
+          --skip-duplicate
