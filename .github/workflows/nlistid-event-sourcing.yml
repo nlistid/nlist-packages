@@ -1,0 +1,79 @@
+name: nlistid-event-sourcing
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nlistid-event-sourcing/src/Nlist.EventSourcing/**'
+      - 'nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/**'
+      - '.github/workflows/nlistid-event-sourcing.yml'
+  workflow_dispatch:
+
+env:
+  VERSION: 1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print welcome message
+        run: echo "Hello! Code was pushed to ${{ github.ref }}"
+
+      - name: Show commit info
+        run: |
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Committed by: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Both projects take a PackageReference to Nlist.Results packages, which only exist on
+      # GitHub Packages, so restore needs this source.
+      - name: Add GitHub Packages source
+        run: >
+          dotnet nuget add source https://nuget.pkg.github.com/nlistid/index.json
+          --name github-nlist
+          --username ${{ github.actor }}
+          --password ${{ secrets.GITHUB_TOKEN }}
+          --store-password-in-clear-text
+
+      # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
+      # command line becomes a global MSBuild property that cascades into the ProjectReference
+      # restore graph and makes NuGet throw "Ambiguous project name".
+      - name: Pack Nlist.EventSourcing.Abstractions
+        run: >
+          dotnet pack nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/Nlist.EventSourcing.Abstractions.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="Contract types for Nlist.EventSourcing"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Pack Nlist.EventSourcing
+        run: >
+          dotnet pack nlistid-event-sourcing/src/Nlist.EventSourcing/Nlist.EventSourcing.csproj
+          --configuration Release
+          --output ./nupkgs
+          /p:Version=${{ env.VERSION }}
+          /p:Authors=nlistid
+          /p:Description="Event-sourced aggregates for .NET"
+          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+
+      - name: Push to GitHub Packages
+        run: >
+          dotnet nuget push ./nupkgs/*.nupkg
+          --source https://nuget.pkg.github.com/nlistid/index.json
+          --api-key ${{ secrets.GITHUB_TOKEN }}
