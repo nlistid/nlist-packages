@@ -1,6 +1,6 @@
 namespace Nlist.Results.Abstractions;
 
-public interface IResult<T>
+public interface IResult<out T>
 {
     bool IsSuccess { get; }
 

@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  VERSION: 2.0.2
+  VERSION: 2.1.0
 
 jobs:
   build:
@@ -39,6 +39,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      # Runs before any pack step, so a failing test stops the release before anything is pushed.
+      - name: Test Nlist.Results
+        run: >
+          dotnet test nlistid-results/src/Nlist.Results.Test/Nlist.Results.Test.csproj
+          --configuration Release
 
       # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
       # command line becomes a global MSBuild property that cascades into the ProjectReference

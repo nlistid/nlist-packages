@@ -10,7 +10,13 @@ using Http = Microsoft.AspNetCore.Http;
 /// </summary>
 public class HttpResultFactory
 {
-    public Http.IResult ToHttpResult<T>(IResult<T> result) => result switch
+    private readonly HttpResultHeaderDecoratorFactory httpResultHeaderDecoratorFactory = new();
+
+    // Map(value => value) rebuilds the result as a Result<T> before matching. IResult<T> is
+    // covariant, so an IResult<object> can hold a ValidationFailureResult<string>, which the
+    // ValidationFailureResult<T> arm would miss; a result from outside Nlist.Results becomes a
+    // SuccessResult<T> or a StatusCodeFailureResult<T> with its code.
+    public Http.IResult ToHttpResult<T>(IResult<T> result) => result.Map(value => value) switch
     {
         SuccessResult<T> r => Http.Results.Json(r.Value, statusCode: r.Code),
         ValidationFailureResult<T> r => Http.Results.ValidationProblem(
@@ -23,10 +29,11 @@ public class HttpResultFactory
         ConflictFailureResult<T> r => Http.Results.Problem(
             detail: r.Detail,
             statusCode: r.Code),
-        RateLimitedFailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code,
-            extensions: RetryAfterExtension(r.RetryAfter)),
+        RateLimitedFailureResult<T> r => this.httpResultHeaderDecoratorFactory.WithRetryAfter(
+            Http.Results.Problem(
+                detail: r.Detail,
+                statusCode: r.Code),
+            r.RetryAfter),
         StatusCodeFailureResult<T> r => Http.Results.Problem(
             detail: r.Detail,
             statusCode: r.Code),
@@ -41,9 +48,4 @@ public class HttpResultFactory
             statusCode: r.Code),
         _ => throw new InvalidOperationException($"Unknown result type: {result.GetType().Name}"),
     };
-
-    private static Dictionary<string, object?>? RetryAfterExtension(TimeSpan? retryAfter) =>
-        retryAfter is { } value
-            ? new Dictionary<string, object?> { ["retryAfter"] = (int)value.TotalSeconds }
-            : null;
 }

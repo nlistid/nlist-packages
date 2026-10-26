@@ -20,7 +20,7 @@ Every failure type extends `FailureResult<T>`. All results implement `IResult<T>
 `Nlist.Results.Abstractions`:
 
 ```csharp
-public interface IResult<T>
+public interface IResult<out T>
 {
     bool IsSuccess { get; }
     T? Value { get; }
@@ -28,6 +28,30 @@ public interface IResult<T>
     int Code { get; }
 }
 ```
+
+### Your own failure types
+
+Derive from `FailureResult<T>`, set `Code`, and override `Propagate` so `Bind`/`Map` keep the type and
+its data:
+
+```csharp
+public sealed class PaymentDeclinedFailureResult<T>(string declineCode, string? detail = null)
+    : FailureResult<T>(detail)
+{
+    public string DeclineCode { get; } = declineCode;
+
+    public override int Code => 402;
+
+    public override IResult<TOut> Propagate<TOut>() =>
+        new PaymentDeclinedFailureResult<TOut>(this.DeclineCode, this.Detail);
+}
+```
+
+- **Override `Propagate`.** Without it, the first `Bind`/`Map` turns the failure into a plain 400.
+- **Copy every property** in `Propagate`, and keep the type generic over `T`.
+- Over HTTP the client gets its `Code` and `Detail`, not its other data.
+
+For a code with no data of its own, use `ResultFactory.StatusCodeFailure<Order>(402, "Payment declined")`.
 
 ## Create
 
@@ -50,14 +74,27 @@ ResultFactory.StatusCodeFailure<User>(418, "I'm a teapot");
 
 ## Chain
 
+`Bind` and `Map` are extension methods on `IResult<T>`, so they chain on anything that returns one:
+
 ```csharp
-Result<UserDto> result = GetUser(id)                  // Result<User>
-    .Bind(user => ValidateUser(user))                // returns Result<User>
+IResult<UserDto> result = GetUser(id)                 // IResult<User>
+    .Bind(user => ValidateUser(user))                // returns IResult<User>
     .Map(user => new UserDto(user.Id, user.Name));   // returns UserDto
 ```
 
 On a failure, `Bind` and `Map` skip the function and return the same failure type with the same
 `Detail`, `Errors`, `RetryAfter` and `Code`.
+
+`BindAsync` and `MapAsync` chain async steps, starting from an `IResult<T>` or a `Task<IResult<T>>`:
+
+```csharp
+IResult<long> appended = await events.ReadStreamAsync(id, 0, ct)   // Task<IResult<IReadOnlyList<IEvent>>>
+    .BindAsync(history => Withdraw(history, amount))               // returns IResult<IReadOnlyList<IEvent>>
+    .BindAsync(changes => events.AppendAsync(id, version, changes, ct));
+```
+
+`IResult<out T>` is covariant, so an `IResult<IReadOnlyList<OrderPlaced>>` can be passed where an
+`IResult<IReadOnlyList<IEvent>>` is expected.
 
 ## Match
 

@@ -1,6 +1,73 @@
 # nlist-packages
 
-A monorepo (one repo, many projects) of small .NET libraries published to GitHub Packages.
+Small, focused .NET 10 libraries for building services: typed results instead of exceptions,
+an OpenTelemetry-shaped telemetry facade, and event-sourced aggregates and projections.
+Published to GitHub Packages.
+
+## Projects
+
+### Nlist.Results — [`nlistid-results/`](nlistid-results/)
+
+Return a `Result<T>` instead of throwing for expected failures. Each failure type carries its HTTP
+status (`NotFoundFailureResult<T>` is 404, `ValidationFailureResult<T>` is 422, and so on), and
+`Bind`/`Map` chain operations that skip ahead on the first failure. The ASP.NET Core package turns
+any result into a JSON response or an [RFC 9457](https://www.rfc-editor.org/info/rfc9457/) problem details response.
+
+```csharp
+app.MapGet("/users/{id}", (int id) => factory.ToHttpResult(
+    GetUser(id)
+        .Bind(user => ValidateUser(user))
+        .Map(user => new UserDto(user.Id, user.Name))));
+```
+
+| Package | Holds |
+|---|---|
+| `Nlist.Results.Abstractions` | `IResult<T>`. No dependencies. |
+| `Nlist.Results` | `Result<T>`, the failure types, `ResultFactory`, `Bind`/`Map` extensions on `IResult<T>` |
+| `Nlist.Results.AspNetCore` | `HttpResultFactory`: results to HTTP responses |
+
+Docs: [Nlist.Results](nlistid-results/README.md)
+
+### Nlist.Telemetry — [`nlistid-telemetry/`](nlistid-telemetry/)
+
+One injectable `ITelemetry<T>`, used in place of `ILogger<T>`, that covers tracing, logging,
+metrics, baggage and a correlation ID that ties together work that doesn't share a trace
+(an HTTP trigger and the queue trigger it starts). Built on OpenTelemetry; export is configured as usual.
+
+```csharp
+using var span = telemetry.Tracing.StartActiveSpan("Send enquiry emails");
+telemetry.Logging.LogInformation("Sending emails.");
+telemetry.Metrics.IncrementCounter("EnquiryEmailsSent");
+```
+
+| Package | Holds |
+|---|---|
+| `Nlist.Telemetry.Abstractions` | The interfaces. No dependencies. |
+| `Nlist.Telemetry` | The implementation and `services.AddTelemetry()` |
+
+Docs: [Nlist.Telemetry](nlistid-telemetry/README.md)
+
+### Nlist.EventSourcing — [`nlistid-event-sourcing/`](nlistid-event-sourcing/)
+
+Event-sourced aggregates in two styles: a mutable `BaseAggregate<T>` that raises and applies events,
+or a pure `IDecider<TCommand, TEvent, TState>` (decide, evolve, fold). Adds snapshots, projectors
+for read models, and storage-agnostic repository interfaces with optimistic concurrency.
+Failures are returned as `Nlist.Results`.
+
+```csharp
+var history = await events.ReadStreamAsync(id, 0, ct);
+var state = decider.Fold(history.Value!.Cast<AccountEvent>());
+
+var decision = decider.Decide(command, state);
+await events.AppendAsync(id, state.Version, decision.Value!, ct);
+```
+
+| Package | Holds |
+|---|---|
+| `Nlist.EventSourcing.Abstractions` | Events, snapshots, entities, repositories, `IAggregate<T>`, `IDecider<…>`, `IProjector<T>` |
+| `Nlist.EventSourcing` | `BaseAggregate<T>`, `BaseProjector<T>` |
+
+Docs: [Nlist.EventSourcing](nlistid-event-sourcing/README.md)
 
 ## Monorepo
 
@@ -22,13 +89,11 @@ nlist-packages/
 - **Across families**, projects use `PackageReference` to a published version, e.g. `nlistid-event-sourcing` uses `Nlist.Results` 2.0.1.
 - **Shared** across all projects: the root `.editorconfig` and `.gitignore`.
 
-## Packages
-
-| Folder | Packages | Published by |
-|---|---|---|
-| `nlistid-results/` | `Nlist.Results.Abstractions`, `Nlist.Results`, `Nlist.Results.AspNetCore` | `nlistid-results.yml` |
-| `nlistid-telemetry/` | `Nlist.Telemetry.Abstractions`, `Nlist.Telemetry` | `nlistid-telemetry.yml` |
-| `nlistid-event-sourcing/` | `Nlist.EventSourcing.Abstractions`, `Nlist.EventSourcing` | `nlistid-event-sourcing.yml` |
+| Folder | Published by |
+|---|---|
+| `nlistid-results/` | `nlistid-results.yml` |
+| `nlistid-telemetry/` | `nlistid-telemetry.yml` |
+| `nlistid-event-sourcing/` | `nlistid-event-sourcing.yml` |
 
 ```mermaid
 classDiagram
@@ -41,13 +106,6 @@ Nlist.Results.Abstractions <.. Nlist.EventSourcing.Abstractions : PackageReferen
 Nlist.Results <.. Nlist.EventSourcing : PackageReference 2.0.1
 Nlist.EventSourcing.Abstractions <.. Nlist.EventSourcing : ProjectReference
 ```
-
-Package docs:
-
-- [Nlist.Results](nlistid-results/src/Nlist.Results/README.md) and [SPEC.md](nlistid-results/SPEC.md)
-- [Nlist.Results.AspNetCore](nlistid-results/src/Nlist.Results.AspNetCore/README.md)
-- [Nlist.Telemetry](nlistid-telemetry/src/Nlist.Telemetry/README.md)
-- [Nlist.EventSourcing](nlistid-event-sourcing/README.md)
 
 ## Build
 
@@ -65,17 +123,7 @@ cd nlistid-event-sourcing/src/Nlist.EventSourcing # also builds Nlist.EventSourc
 dotnet build
 ```
 
-`nlistid-event-sourcing` restores `Nlist.Results` packages from GitHub Packages, so it needs the source below.
-
-## Consume the packages
-
-```bash
-dotnet nuget add source https://nuget.pkg.github.com/nlistid/index.json \
-  --name github-nlist \
-  --username <your-github-username> \
-  --password $(gh auth token) \
-  --store-password-in-clear-text
-```
+`nlistid-event-sourcing` restores `Nlist.Results` packages from GitHub Packages, so it needs the source from [Install](#install).
 
 ## Publish
 

@@ -13,12 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Nlist.Results\Nlist.Results.csproj" />
     <ProjectReference Include="..\Nlist.Results.Abstractions\Nlist.Results.Abstractions.csproj" />
+    <ProjectReference Include="..\Nlist.Results.AspNetCore\Nlist.Results.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

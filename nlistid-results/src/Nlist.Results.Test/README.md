@@ -1,6 +1,6 @@
 # Nlist.Results.Test
 
-MSTest + Moq tests for `Nlist.Results`. Only a placeholder `Test1` so far. Not packed.
+MSTest tests for `Nlist.Results` and `Nlist.Results.AspNetCore`, written as BDD scenarios (see `/bdd-tests`). Not packed.
 
 ```bash
 cd nlistid-results/src/Nlist.Results.Test
