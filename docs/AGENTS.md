@@ -8,7 +8,7 @@ Three independent .NET package families. No root `.sln` — run `dotnet` command
 
 - `nlistid-results/src/`
   - `Nlist.Results.Abstractions` — `IResult<T>` only. No runtime dependencies (StyleCop only, private).
-  - `Nlist.Results` — `Result<T>`, the failure types, `ResultFactory`, `Bind`/`Map`.
+  - `Nlist.Results` — `Result<T>`, the failure types, `ResultFactory`, `Bind`/`Map`/`OnSuccess`/`OnFailure`.
   - `Nlist.Results.AspNetCore` — `HttpResultFactory`, maps results to problem-details responses.
   - `Nlist.Results.Test` — MSTest BDD tests for `ResultExtensions` and `HttpResultFactory`. Not packed.
   - `nlistid-results/SPEC.md` — the rules. Keep it in sync with the type set, `Bind`/`Map` and HTTP mapping.

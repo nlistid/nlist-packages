@@ -96,6 +96,22 @@ IResult<long> appended = await events.ReadStreamAsync(id, 0, ct)   // Task<IResu
 `IResult<out T>` is covariant, so an `IResult<IReadOnlyList<OrderPlaced>>` can be passed where an
 `IResult<IReadOnlyList<IEvent>>` is expected.
 
+## Log
+
+`OnSuccess` and `OnFailure` run a side effect, such as logging, and return the same result, so the
+chain carries on:
+
+```csharp
+IResult<Todo> saved = await store.FindAsync(id)
+    .OnSuccessAsync(todo => logger.LogInformation("Found {Id}", todo.Id))
+    .BindAsync(todo => TodoRules.Complete(todo))
+    .OnFailureAsync(failure => logger.LogWarning("Complete {Id} failed: {Code} {Detail}", id, failure.Code, failure.Detail))
+    .BindAsync(todo => store.SaveAsync(todo));
+```
+
+`OnFailure` is given the whole result, so it can read `Code`, `Detail`, or a type's own data such as
+`ValidationFailureResult<T>.Errors`. An exception thrown inside the action is not caught.
+
 ## Match
 
 ```csharp

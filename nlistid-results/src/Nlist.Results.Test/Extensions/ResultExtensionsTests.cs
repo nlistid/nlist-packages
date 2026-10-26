@@ -359,4 +359,217 @@ public sealed class ResultExtensionsTests
             .ThenItFailsAs<UnexpectedFailureResult<string>>(code: 500, detail: "bug")
             .ThenTheFunctionRan(times: 0);
     }
+
+    // ---- OnSuccess --------------------------------------------------------
+
+    [TestMethod]
+    public void OnSuccess_when_success_runs_the_action_and_returns_the_same_result()
+    {
+        new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnSuccess()
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGiven("value")
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public void OnSuccess_when_failure_skips_the_action_and_returns_the_same_result()
+    {
+        new ResultExtensionsTestScenario()
+            .GivenTheSource(new NotFoundFailureResult<object>("missing"))
+            .WhenOnSuccess()
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    // ---- OnSuccessAsync ---------------------------------------------------
+
+    [TestMethod]
+    public async Task OnSuccessAsync_when_success_runs_the_action_and_returns_the_same_result()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnSuccessAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGiven("value")
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public async Task OnSuccessAsync_when_failure_skips_the_action_and_returns_the_same_result()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new ConflictFailureResult<object>("taken"))
+            .WhenOnSuccessAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    [TestMethod]
+    public async Task OnSuccessAsync_on_a_task_when_success_runs_the_action_and_returns_the_same_result()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnSuccessOnATaskAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGiven("value")
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public async Task OnSuccessAsync_on_a_task_when_failure_skips_the_action()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new DependencyFailureResult<object>("store down"))
+            .WhenOnSuccessOnATaskAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    [TestMethod]
+    public async Task OnSuccessAsync_on_a_task_to_an_async_action_when_success_runs_the_action()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnSuccessOnATaskToAnAsyncActionAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGiven("value")
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public async Task OnSuccessAsync_on_a_task_to_an_async_action_when_failure_skips_the_action()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new UnexpectedFailureResult<object>("bug"))
+            .WhenOnSuccessOnATaskToAnAsyncActionAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    // ---- OnFailure --------------------------------------------------------
+
+    [TestMethod]
+    public void OnFailure_when_failure_runs_the_action_with_the_failure_and_returns_it()
+    {
+        new ResultExtensionsTestScenario()
+            .GivenTheSource(new NotFoundFailureResult<object>("missing"))
+            .WhenOnFailure()
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGivenTheSource()
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public void OnFailure_when_failure_is_seen_through_covariance_gives_the_action_the_original()
+    {
+        var errors = new Dictionary<string, string[]> { ["Email"] = ["Email is required"] };
+
+        new ResultExtensionsTestScenario()
+            .GivenTheSource(new ValidationFailureResult<string>(errors, "invalid"))
+            .WhenOnFailure()
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGivenTheSource()
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public void OnFailure_when_success_skips_the_action_and_returns_the_same_result()
+    {
+        new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnFailure()
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    // ---- OnFailureAsync ---------------------------------------------------
+
+    [TestMethod]
+    public async Task OnFailureAsync_when_failure_runs_the_action_with_the_failure_and_returns_it()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new ConflictFailureResult<object>("taken"))
+            .WhenOnFailureAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGivenTheSource()
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public async Task OnFailureAsync_when_success_skips_the_action_and_returns_the_same_result()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnFailureAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    [TestMethod]
+    public async Task OnFailureAsync_on_a_task_when_failure_runs_the_action_with_the_failure()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new RateLimitedFailureResult<object>(TimeSpan.FromSeconds(30), "slow down"))
+            .WhenOnFailureOnATaskAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGivenTheSource()
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public async Task OnFailureAsync_on_a_task_when_success_skips_the_action()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnFailureOnATaskAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
+
+    [TestMethod]
+    public async Task OnFailureAsync_on_a_task_to_an_async_action_when_failure_runs_the_action_with_the_failure()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new StatusCodeFailureResult<object>(418, "teapot"))
+            .WhenOnFailureOnATaskToAnAsyncActionAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheActionWasGivenTheSource()
+            .ThenTheFunctionRan(times: 1);
+    }
+
+    [TestMethod]
+    public async Task OnFailureAsync_on_a_task_to_an_async_action_when_success_skips_the_action()
+    {
+        var scenario = await new ResultExtensionsTestScenario()
+            .GivenTheSource(new SuccessResult<object>("value"))
+            .WhenOnFailureOnATaskToAnAsyncActionAsync();
+
+        scenario
+            .ThenTheSourceIsReturned()
+            .ThenTheFunctionRan(times: 0);
+    }
 }

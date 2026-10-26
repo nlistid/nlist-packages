@@ -7,7 +7,7 @@ The rules the code must keep. Update this file when you change them.
 | Project | Holds | References |
 |---|---|---|
 | `Nlist.Results.Abstractions` | `IResult<T>` | nothing (StyleCop only, private) |
-| `Nlist.Results` | `Result<T>`, the result types, `ResultFactory`, `ResultExtensions` (`Bind`/`Map`) | Abstractions |
+| `Nlist.Results` | `Result<T>`, the result types, `ResultFactory`, `ResultExtensions` (`Bind`/`Map`/`OnSuccess`/`OnFailure`) | Abstractions |
 | `Nlist.Results.AspNetCore` | `HttpResultFactory` | Results, Abstractions |
 | `Nlist.Results.Test` | MSTest BDD tests for `ResultExtensions` and `HttpResultFactory` | Results, Abstractions, AspNetCore |
 
@@ -86,6 +86,30 @@ The task must be a `Task<IResult<T>>`, not a `Task<Result<T>>`: `Task` is not co
 - The first failure in a chain is kept to the end.
 - Both return `IResult<TOut>`, not `Result<TOut>`, so they chain on anything typed as `IResult<T>`.
 - `Result<T>` has no `Bind`/`Map` of its own: the extensions are the only ones.
+
+### OnSuccess / OnFailure
+
+Side effects such as logging, on the same receivers as `Bind`/`Map`. Each runs its action only on
+success (`OnSuccess`, given the value) or only on failure (`OnFailure`, given the `IResult<T>`), and
+returns the same result object: nothing is rebuilt, so no data can be lost.
+
+| Method | On | Action |
+|---|---|---|
+| `OnSuccess` | `IResult<T>` | `Action<T>` |
+| `OnSuccessAsync` | `IResult<T>` | `Func<T, Task>` |
+| `OnSuccessAsync` | `Task<IResult<T>>` | `Action<T>` |
+| `OnSuccessAsync` | `Task<IResult<T>>` | `Func<T, Task>` |
+| `OnFailure` | `IResult<T>` | `Action<IResult<T>>` |
+| `OnFailureAsync` | `IResult<T>` | `Func<IResult<T>, Task>` |
+| `OnFailureAsync` | `Task<IResult<T>>` | `Action<IResult<T>>` |
+| `OnFailureAsync` | `Task<IResult<T>>` | `Func<IResult<T>, Task>` |
+
+- An exception thrown by the action is not caught: it reaches the caller, not the result.
+- `OnFailure` gets the original result, as seen through covariance; check its concrete type (for
+  example `ValidationFailureResult<T>`) to read its data.
+- On `Task<IResult<T>>`, a lambda that returns a `Task` picks the `Func<…, Task>` overload and is awaited.
+  The sync `OnSuccess`/`OnFailure` on `IResult<T>` take only an `Action`: an async lambda there is
+  not awaited, so use `OnSuccessAsync`/`OnFailureAsync`.
 
 ## 4. HTTP mapping
 
