@@ -12,28 +12,18 @@ public static class ResultExtensions
 {
     public static IResult<TOut> Bind<T, TOut>(this IResult<T> result, Func<T, IResult<TOut>> func)
     {
-        if (result.IsSuccess)
-        {
-            return func(result.Value!);
-        }
-        else
-        {
-            return Propagate<T, TOut>(result);
-        }
+        return result.IsSuccess
+            ? func(result.Value!)
+            : Propagate<T, TOut>(result);
     }
 
     public static async Task<IResult<TOut>> BindAsync<T, TOut>(
         this IResult<T> result,
         Func<T, Task<IResult<TOut>>> func)
     {
-        if (result.IsSuccess)
-        {
-            return await func(result.Value!).ConfigureAwait(false);
-        }
-        else
-        {
-            return Propagate<T, TOut>(result);
-        }
+        return result.IsSuccess
+            ? await func(result.Value!).ConfigureAwait(false)
+            : Propagate<T, TOut>(result);
     }
 
     public static async Task<IResult<TOut>> BindAsync<T, TOut>(
@@ -56,28 +46,18 @@ public static class ResultExtensions
 
     public static IResult<TOut> Map<T, TOut>(this IResult<T> result, Func<T, TOut> func)
     {
-        if (result.IsSuccess)
-        {
-            return new SuccessResult<TOut>(func(result.Value!));
-        }
-        else
-        {
-            return Propagate<T, TOut>(result);
-        }
+        return result.IsSuccess
+            ? new SuccessResult<TOut>(func(result.Value!))
+            : Propagate<T, TOut>(result);
     }
 
     public static async Task<IResult<TOut>> MapAsync<T, TOut>(
         this IResult<T> result,
         Func<T, Task<TOut>> func)
     {
-        if (result.IsSuccess)
-        {
-            return new SuccessResult<TOut>(await func(result.Value!).ConfigureAwait(false));
-        }
-        else
-        {
-            return Propagate<T, TOut>(result);
-        }
+        return result.IsSuccess
+            ? new SuccessResult<TOut>(await func(result.Value!).ConfigureAwait(false))
+            : Propagate<T, TOut>(result);
     }
 
     public static async Task<IResult<TOut>> MapAsync<T, TOut>(
@@ -181,13 +161,8 @@ public static class ResultExtensions
     // A failure from outside Nlist.Results has no type to keep, only its code and detail.
     private static IResult<TOut> Propagate<T, TOut>(IResult<T> result)
     {
-        if (result is IFailureResult failure)
-        {
-            return failure.Propagate<TOut>();
-        }
-        else
-        {
-            return new StatusCodeFailureResult<TOut>(result.Code, result.Detail);
-        }
+        return result is IFailureResult failure
+            ? failure.Propagate<TOut>()
+            : new StatusCodeFailureResult<TOut>(result.Code, result.Detail);
     }
 }

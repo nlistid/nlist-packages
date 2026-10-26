@@ -29,6 +29,12 @@ public abstract class TelemetryTracingBase<T>
         [CallerMemberName] string methodName = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        return new TelemetryTracingSpan<T>(this.tracer, this.logger, name, properties, methodName, sourceLineNumber);
+        return new TelemetryTracingSpan<T>(
+            this.tracer,
+            this.logger,
+            name,
+            properties,
+            methodName,
+            sourceLineNumber);
     }
 }

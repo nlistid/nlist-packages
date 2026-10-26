@@ -19,18 +19,25 @@ public sealed class TelemetryBaggage : ITelemetryBaggage
 
     public string? GetBaggage(string name)
     {
-        return this.baggage.TryGetValue(name, out var value) ? value : OpenTelemetry.Baggage.GetBaggage(name);
+        var hasLocalValue = this.baggage.TryGetValue(name, out var localValue);
+
+        return hasLocalValue
+            ? localValue
+            : OpenTelemetry.Baggage.GetBaggage(name);
     }
 
     public void SetBaggage(string name, string? value)
     {
-        if (value is null)
+        var hasValue = value is not null;
+
+        if (hasValue)
         {
-            this.baggage.Remove(name);
+            this.baggage[name] = value!;
         }
+        // Setting null removes the entry, as OpenTelemetry.Baggage does.
         else
         {
-            this.baggage[name] = value;
+            this.baggage.Remove(name);
         }
 
         OpenTelemetry.Baggage.SetBaggage(name, value);

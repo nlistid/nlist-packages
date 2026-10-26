@@ -37,21 +37,27 @@ public sealed class TelemetryMetrics : ITelemetryMetrics
         string? unit = null,
         string? description = null)
     {
-        var counter = this.counters.GetOrAdd(name, _ => this.meter.CreateCounter<long>(name, unit, description));
+        var createCounter = (string counterName) => this.meter.CreateCounter<long>(counterName, unit, description);
 
-        if (tags is null || tags.Length == 0)
+        var counter = this.counters.GetOrAdd(name, createCounter);
+
+        var hasTags = tags is { Length: > 0 };
+
+        if (hasTags)
+        {
+            var tagList = new TagList();
+
+            foreach (var (tagName, tagValue) in tags!)
+            {
+                tagList.Add(tagName, tagValue);
+            }
+
+            counter.Add(value, in tagList);
+        }
+        // No tags: the plain overload, without an empty TagList.
+        else
         {
             counter.Add(value);
-            return;
         }
-
-        var tagList = new TagList();
-
-        foreach (var (tagName, tagValue) in tags)
-        {
-            tagList.Add(tagName, tagValue);
-        }
-
-        counter.Add(value, in tagList);
     }
 }

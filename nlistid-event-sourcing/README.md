@@ -103,7 +103,7 @@ public abstract class BaseAggregate<T> : IAggregate<T>
     public void Load(IEnumerable<IEvent> history);
     public void ClearUncommittedChanges();
 
-    protected IResult<IEvent> Raise(IEvent @event);  // guard, apply, add to UncommittedChanges
+    protected IResult<IEvent> Raise(IEvent @event);  // check, apply, add to UncommittedChanges
     protected abstract void Apply(IEvent @event);    // must not fail; also runs on replay
 }
 ```
@@ -114,9 +114,9 @@ Load and save:
 var aggregate = new EnquiryAggregate(id);
 
 var snapshot = await snapshots.GetAsync<Enquiry>(id, ct);
-if (snapshot.Value is { } s)
+if (snapshot.Value is { } storedSnapshot)
 {
-    aggregate.TryRestore(s);   // false = stale snapshot, ignored
+    aggregate.TryRestore(storedSnapshot);   // false = stale snapshot, ignored
 }
 
 var history = await events.ReadStreamAsync(id, aggregate.Version, ct);
@@ -189,18 +189,18 @@ public sealed class AccountDecider : IDecider<AccountCommand, AccountEvent, Acco
 
     public IResult<IReadOnlyList<AccountEvent>> Decide(AccountCommand command, AccountState state) => command switch
     {
-        OpenAccount c   => Open(c, state),
-        DepositMoney c  => Deposit(c, state),
-        WithdrawMoney c => Withdraw(c, state),
-        _               => throw new ArgumentException($"Unknown command {command.GetType().Name}")
+        OpenAccount open         => Open(open, state),
+        DepositMoney deposit     => Deposit(deposit, state),
+        WithdrawMoney withdrawal => Withdraw(withdrawal, state),
+        _                        => throw new ArgumentException($"Unknown command {command.GetType().Name}")
     };
 
     public AccountState Evolve(AccountState state, AccountEvent @event) => (@event switch
     {
-        AccountOpened    => state with { IsOpen = true },
-        MoneyDeposited d => state with { Balance = state.Balance + d.Amount },
-        MoneyWithdrawn w => state with { Balance = state.Balance - w.Amount },
-        _                => state
+        AccountOpened            => state with { IsOpen = true },
+        MoneyDeposited deposited => state with { Balance = state.Balance + deposited.Amount },
+        MoneyWithdrawn withdrawn => state with { Balance = state.Balance - withdrawn.Amount },
+        _                        => state
     }) with { Version = @event.Version };
 }
 ```
@@ -262,8 +262,8 @@ public sealed class EnquiryRowProjector(Guid id, EnquiryRow? model)
 
     public override EnquiryRow Apply(EnquiryRow model, IEvent @event) => @event switch
     {
-        EnquiryReceived e => model with { Subject = e.Subject },
-        _                 => model
+        EnquiryReceived received => model with { Subject = received.Subject },
+        _                        => model
     };
 }
 

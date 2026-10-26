@@ -15,8 +15,8 @@ public static class TelemetryServiceCollectionExtensions
     /// that wants its own instrumentation library identity - e.g. to distinguish itself from
     /// another app also using this library in the same OpenTelemetry backend - can pass its
     /// own. Whatever is passed here must also be what the host registers against in its own
-    /// OpenTelemetry setup (<c>.WithTracing(b => b.AddSource(name))</c> and
-    /// <c>.WithMetrics(b => b.AddMeter(name))</c>) - a mismatch there means spans/metrics are
+    /// OpenTelemetry setup (<c>.WithTracing(tracing => tracing.AddSource(name))</c> and
+    /// <c>.WithMetrics(metrics => metrics.AddMeter(name))</c>) - a mismatch there means spans/metrics are
     /// still created, just never collected, since nothing is listening for the name they
     /// were actually built from.
     /// </summary>

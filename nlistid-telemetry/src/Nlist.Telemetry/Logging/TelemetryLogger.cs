@@ -14,10 +14,10 @@ public sealed class TelemetryLogger<T> : ITelemetryLogger<T>
 
     public TelemetryLogger(
         ILogger<T> logger,
-        ITelemetryCorrelation correlationIdAccessor)
+        ITelemetryCorrelation telemetryCorrelation)
     {
         this.logger = logger;
-        this.telemetryCorrelation = correlationIdAccessor;
+        this.telemetryCorrelation = telemetryCorrelation;
     }
 
     public void LogInformation(
@@ -56,26 +56,32 @@ public sealed class TelemetryLogger<T> : ITelemetryLogger<T>
         string methodName,
         int sourceLineNumber)
     {
-        if (!this.logger.IsEnabled(level))
+        var isLevelEnabled = this.logger.IsEnabled(level);
+
+        // Skipped when the level is off, so no state is built for a message nobody reads.
+        if (isLevelEnabled)
         {
-            return;
+            var correlationId = this.telemetryCorrelation.CorrelationId;
+
+            List<KeyValuePair<string, object?>> state =
+            [
+                new("CorrelationId", correlationId),
+                new("SourceMethod", $"{TypeName}.{methodName}"),
+                new("SourceLineNumber", sourceLineNumber),
+                new("Message", message)
+            ];
+
+            foreach (var (name, value) in properties ?? [])
+            {
+                state.Add(new(name, value));
+            }
+
+            this.logger.Log(
+                level,
+                default,
+                state,
+                exception,
+                (_, _) => $"{correlationId} | {message}");
         }
-
-        var correlationId = this.telemetryCorrelation.CorrelationId;
-
-        List<KeyValuePair<string, object?>> state =
-        [
-            new("CorrelationId", correlationId),
-            new("SourceMethod", $"{TypeName}.{methodName}"),
-            new("SourceLineNumber", sourceLineNumber),
-            new("Message", message)
-        ];
-
-        foreach (var (name, value) in properties ?? [])
-        {
-            state.Add(new(name, value));
-        }
-
-        this.logger.Log(level, default, state, exception, (_, _) => $"{correlationId} | {message}");
     }
 }

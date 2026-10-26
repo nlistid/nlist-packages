@@ -58,9 +58,17 @@ public sealed class BaseProjectorTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
-        var second = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var second = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
@@ -79,7 +87,11 @@ public sealed class BaseProjectorTests
 
         var stored = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var third = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000003"), aggregateId, 3, 4);
+        var third = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000003"),
+            aggregateId,
+            3,
+            4);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 3, Total = 12 };
 
@@ -116,7 +128,11 @@ public sealed class BaseProjectorTests
 
         var stored = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var second = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var second = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
@@ -133,7 +149,11 @@ public sealed class BaseProjectorTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var second = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var second = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 0, Total = 0 };
 
@@ -149,9 +169,17 @@ public sealed class BaseProjectorTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
-        var third = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000003"), aggregateId, 3, 4);
+        var third = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000003"),
+            aggregateId,
+            3,
+            4);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 0, Total = 0 };
 
@@ -167,7 +195,11 @@ public sealed class BaseProjectorTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), Guid.Parse("22222222-2222-2222-2222-222222222222"), 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            1,
+            5);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 0, Total = 0 };
 
@@ -182,7 +214,11 @@ public sealed class BaseProjectorTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5) { AggregateType = "Other" };
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5) { AggregateType = "Other" };
 
         var expected = new CounterEntity { Id = aggregateId, Version = 0, Total = 0 };
 

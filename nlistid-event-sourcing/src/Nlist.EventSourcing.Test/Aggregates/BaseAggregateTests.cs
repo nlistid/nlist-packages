@@ -30,9 +30,17 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
-        var second = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var second = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
@@ -51,9 +59,17 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
-        var third = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000003"), aggregateId, 3, 3);
+        var third = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000003"),
+            aggregateId,
+            3,
+            3);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenTheHistory(first, third)
@@ -66,7 +82,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), Guid.Parse("22222222-2222-2222-2222-222222222222"), 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            1,
+            5);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenTheHistory(first)
@@ -79,7 +99,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5) { AggregateType = "Other" };
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5) { AggregateType = "Other" };
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenTheHistory(first)
@@ -92,7 +116,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Empty, aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Empty,
+            aggregateId,
+            1,
+            5);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenTheHistory(first)
@@ -105,7 +133,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var second = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var second = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenAnIncrementWasRaised(Guid.Parse("e0000000-0000-0000-0000-000000000001"), 5)
@@ -121,9 +153,17 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
-        var third = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000003"), aggregateId, 3, 4);
+        var third = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000003"),
+            aggregateId,
+            3,
+            4);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 3, Total = 12 };
 
@@ -143,9 +183,17 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
-        var second = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var second = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenASnapshot(snapshot)
@@ -161,7 +209,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var expectedEvent = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var expectedEvent = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 1, Total = 5 };
 
@@ -180,9 +232,17 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
-        var expectedEvent = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var expectedEvent = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
@@ -200,7 +260,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var expectedEvent = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000002"), aggregateId, 2, 3);
+        var expectedEvent = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            aggregateId,
+            2,
+            3);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenAnIncrementWasRaised(Guid.Parse("e0000000-0000-0000-0000-000000000001"), 5)
@@ -217,7 +281,11 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 3, Total = 9 };
 
@@ -240,7 +308,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
         var expected = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
@@ -260,7 +332,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData) { AggregateDataType = "CounterV0" };
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData) { AggregateDataType = "CounterV0" };
 
         var expected = new CounterEntity { Id = aggregateId, Version = 0, Total = 0 };
 
@@ -280,7 +356,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(Guid.Parse("22222222-2222-2222-2222-222222222222"), 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
         new BaseAggregateTestScenario(aggregateId)
             .WhenRestoring(snapshot)
@@ -294,7 +374,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 0, Total = 0 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 0, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            0,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
         new BaseAggregateTestScenario(aggregateId)
             .WhenRestoring(snapshot)
@@ -308,7 +392,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Empty, snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Empty,
+            snapshotData);
 
         new BaseAggregateTestScenario(aggregateId)
             .WhenRestoring(snapshot)
@@ -322,7 +410,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 1, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
         new BaseAggregateTestScenario(aggregateId)
             .WhenRestoring(snapshot)
@@ -334,11 +426,19 @@ public sealed class BaseAggregateTests
     {
         var aggregateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var first = new CounterIncrementedEvent(Guid.Parse("e0000000-0000-0000-0000-000000000001"), aggregateId, 1, 5);
+        var first = new CounterIncrementedEvent(
+            Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+            aggregateId,
+            1,
+            5);
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenTheHistory(first)
@@ -353,7 +453,11 @@ public sealed class BaseAggregateTests
 
         var snapshotData = new CounterEntity { Id = aggregateId, Version = 2, Total = 8 };
 
-        var snapshot = new CounterSnapshot(aggregateId, 2, Guid.Parse("e0000000-0000-0000-0000-000000000002"), snapshotData);
+        var snapshot = new CounterSnapshot(
+            aggregateId,
+            2,
+            Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+            snapshotData);
 
         new BaseAggregateTestScenario(aggregateId)
             .GivenAnIncrementWasRaised(Guid.Parse("e0000000-0000-0000-0000-000000000001"), 5)

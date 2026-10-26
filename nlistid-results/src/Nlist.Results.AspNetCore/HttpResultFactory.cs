@@ -16,36 +16,41 @@ public class HttpResultFactory
     // covariant, so an IResult<object> can hold a ValidationFailureResult<string>, which the
     // ValidationFailureResult<T> arm would miss; a result from outside Nlist.Results becomes a
     // SuccessResult<T> or a StatusCodeFailureResult<T> with its code.
-    public Http.IResult ToHttpResult<T>(IResult<T> result) => result.Map(value => value) switch
+    public Http.IResult ToHttpResult<T>(IResult<T> result)
     {
-        SuccessResult<T> r => Http.Results.Json(r.Value, statusCode: r.Code),
-        ValidationFailureResult<T> r => Http.Results.ValidationProblem(
-            errors: r.Errors,
-            detail: r.Detail,
-            statusCode: r.Code),
-        NotFoundFailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code),
-        ConflictFailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code),
-        RateLimitedFailureResult<T> r => this.httpResultHeaderDecoratorFactory.WithRetryAfter(
-            Http.Results.Problem(
-                detail: r.Detail,
-                statusCode: r.Code),
-            r.RetryAfter),
-        StatusCodeFailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code),
-        DependencyFailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code),
-        UnexpectedFailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code),
-        FailureResult<T> r => Http.Results.Problem(
-            detail: r.Detail,
-            statusCode: r.Code),
-        _ => throw new InvalidOperationException($"Unknown result type: {result.GetType().Name}"),
-    };
+        var rebuiltResult = result.Map(value => value);
+
+        return rebuiltResult switch
+        {
+            SuccessResult<T> success => Http.Results.Json(success.Value, statusCode: success.Code),
+            ValidationFailureResult<T> validationFailure => Http.Results.ValidationProblem(
+                errors: validationFailure.Errors,
+                detail: validationFailure.Detail,
+                statusCode: validationFailure.Code),
+            NotFoundFailureResult<T> failure => Http.Results.Problem(
+                detail: failure.Detail,
+                statusCode: failure.Code),
+            ConflictFailureResult<T> failure => Http.Results.Problem(
+                detail: failure.Detail,
+                statusCode: failure.Code),
+            RateLimitedFailureResult<T> failure => this.httpResultHeaderDecoratorFactory.WithRetryAfter(
+                Http.Results.Problem(
+                    detail: failure.Detail,
+                    statusCode: failure.Code),
+                failure.RetryAfter),
+            StatusCodeFailureResult<T> failure => Http.Results.Problem(
+                detail: failure.Detail,
+                statusCode: failure.Code),
+            DependencyFailureResult<T> failure => Http.Results.Problem(
+                detail: failure.Detail,
+                statusCode: failure.Code),
+            UnexpectedFailureResult<T> failure => Http.Results.Problem(
+                detail: failure.Detail,
+                statusCode: failure.Code),
+            FailureResult<T> failure => Http.Results.Problem(
+                detail: failure.Detail,
+                statusCode: failure.Code),
+            _ => throw new InvalidOperationException($"Unknown result type: {result.GetType().Name}"),
+        };
+    }
 }

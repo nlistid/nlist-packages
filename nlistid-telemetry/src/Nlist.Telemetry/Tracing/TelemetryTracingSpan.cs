@@ -73,7 +73,9 @@ internal sealed class TelemetryTracingSpan<T> : TelemetryTracingBase<T>, ITeleme
 
         allProperties[this.properties.Length] = ("DurationMs", elapsedMilliseconds);
 
-        if (this.failure is null)
+        var hasSucceeded = this.failure is null;
+
+        if (hasSucceeded)
         {
             this.logger.LogInformation(
                 $"{this.name} completed.",
@@ -88,7 +90,9 @@ internal sealed class TelemetryTracingSpan<T> : TelemetryTracingBase<T>, ITeleme
             // comes from LogError below, which the OTel Logging SDK already correlates to
             // this span through the ambient Activity, so there is no need to also attach
             // the exception to the span - doing both exports the same exception twice.
-            this.span.SetStatus(Status.Error.WithDescription(this.failure.Message));
+            var errorStatus = Status.Error.WithDescription(this.failure!.Message);
+
+            this.span.SetStatus(errorStatus);
 
             this.logger.LogError(
                 this.failure,
@@ -144,15 +148,21 @@ internal sealed class TelemetryTracingSpan<T> : TelemetryTracingBase<T>, ITeleme
     /// </summary>
     private void AddEventWithProperties(TelemetrySpan span, string name, (string Name, object? Value)[]? properties)
     {
-        if (properties is null || properties.Length == 0)
+        var hasProperties = properties is { Length: > 0 };
+
+        if (hasProperties)
+        {
+            var toKeyValuePair = ((string Name, object? Value) property) => new KeyValuePair<string, object?>(property.Name, property.Value);
+
+            var attributePairs = properties!.Select(toKeyValuePair);
+            var attributes = new SpanAttributes(attributePairs);
+
+            span.AddEvent(name, attributes);
+        }
+        // No properties: the plain overload, without empty attributes.
+        else
         {
             span.AddEvent(name);
-            return;
         }
-
-        var attributes = new SpanAttributes(
-            properties.Select(property => new KeyValuePair<string, object?>(property.Name, property.Value)));
-
-        span.AddEvent(name, attributes);
     }
 }

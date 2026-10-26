@@ -117,10 +117,10 @@ IResult<Todo> saved = await store.FindAsync(id)
 ```csharp
 string message = result switch
 {
-    SuccessResult<UserDto> s => $"Hello, {s.Value.Name}",
+    SuccessResult<UserDto> success => $"Hello, {success.Value.Name}",
     NotFoundFailureResult<UserDto> => "User not found",
-    ValidationFailureResult<UserDto> v => string.Join(", ", v.Errors.SelectMany(e => e.Value)),
-    FailureResult<UserDto> f => $"Request error: {f.Detail}",
+    ValidationFailureResult<UserDto> validationFailure => string.Join(", ", validationFailure.Errors.SelectMany(error => error.Value)),
+    FailureResult<UserDto> failure => $"Request error: {failure.Detail}",
     _ => "Unknown result",
 };
 ```

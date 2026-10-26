@@ -22,8 +22,8 @@ The interfaces live in `Nlist.Telemetry.Abstractions`, which has no dependencies
 services.AddTelemetry();
 
 services.AddOpenTelemetry()
-    .WithTracing(b => b.AddSource(TelemetryTracer.Name))
-    .WithMetrics(b => b.AddMeter(TelemetryTracer.Name));
+    .WithTracing(tracing => tracing.AddSource(TelemetryTracer.Name))
+    .WithMetrics(metrics => metrics.AddMeter(TelemetryTracer.Name));
 ```
 
 `TelemetryTracer.Name` is `"Nlist.Telemetry"`. To use your own name, pass it to both:

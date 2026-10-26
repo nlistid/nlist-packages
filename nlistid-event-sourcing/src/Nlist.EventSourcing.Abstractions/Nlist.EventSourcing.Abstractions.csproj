@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nlist.Results.Abstractions" Version="2.0.1" />
+    <PackageReference Include="Nlist.Results.Abstractions" Version="2.1.1" />
   </ItemGroup>
 
 </Project>

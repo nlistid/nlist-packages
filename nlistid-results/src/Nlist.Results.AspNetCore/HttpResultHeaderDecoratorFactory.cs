@@ -12,11 +12,21 @@ internal sealed class HttpResultHeaderDecoratorFactory
 {
     // Adds a Retry-After header (RFC 9110 §10.2.3) in whole seconds, rounded up so a client
     // never retries before the limit resets. Returns inner unchanged when retryAfter is null.
-    public Http.IResult WithRetryAfter(Http.IResult inner, TimeSpan? retryAfter) =>
-        retryAfter is { } value
-            ? new HttpResultHeaderDecorator(
+    public Http.IResult WithRetryAfter(Http.IResult inner, TimeSpan? retryAfter)
+    {
+        Http.IResult result = inner;
+
+        if (retryAfter is { } retryAfterValue)
+        {
+            var retryAfterSeconds = (int)Math.Ceiling(retryAfterValue.TotalSeconds);
+            var retryAfterHeader = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
+
+            result = new HttpResultHeaderDecorator(
                 inner,
                 HeaderNames.RetryAfter,
-                ((int)Math.Ceiling(value.TotalSeconds)).ToString(CultureInfo.InvariantCulture))
-            : inner;
+                retryAfterHeader);
+        }
+
+        return result;
+    }
 }

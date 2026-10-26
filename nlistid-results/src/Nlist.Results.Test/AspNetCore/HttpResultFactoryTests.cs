@@ -23,7 +23,11 @@ public sealed class HttpResultFactoryTests
     public async Task ToHttpResult_when_foreign_success_returns_200_with_the_value_as_json()
     {
         var scenario = await new HttpResultFactoryTestScenario()
-            .GivenTheResult(new ForeignResult<string>(true, "value", null, 200))
+            .GivenTheResult(new ForeignResult<string>(
+                true,
+                "value",
+                null,
+                200))
             .WhenMappingAsync();
 
         scenario
@@ -121,7 +125,11 @@ public sealed class HttpResultFactoryTests
     public async Task ToHttpResult_when_foreign_failure_returns_a_problem_with_its_code()
     {
         var scenario = await new HttpResultFactoryTestScenario()
-            .GivenTheResult(new ForeignResult<string>(false, null, "gone", 410))
+            .GivenTheResult(new ForeignResult<string>(
+                false,
+                null,
+                "gone",
+                410))
             .WhenMappingAsync();
 
         scenario

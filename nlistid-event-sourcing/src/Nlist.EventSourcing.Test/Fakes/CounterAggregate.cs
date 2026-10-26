@@ -17,14 +17,22 @@ public sealed class CounterAggregate(Guid id) : BaseAggregate<CounterEntity>(id)
 
     public IResult<IEvent> Increment(Guid eventId, int amount)
     {
-        return Raise(new CounterIncrementedEvent(eventId, Id, Version + 1, amount));
+        var nextVersion = this.Version + 1;
+
+        var incrementedEvent = new CounterIncrementedEvent(
+            eventId,
+            this.Id,
+            nextVersion,
+            amount);
+
+        return this.Raise(incrementedEvent);
     }
 
     protected override void Apply(IEvent @event)
     {
         if (@event is CounterIncrementedEvent incremented)
         {
-            State.Total += incremented.Amount;
+            this.State.Total += incremented.Amount;
         }
     }
 }

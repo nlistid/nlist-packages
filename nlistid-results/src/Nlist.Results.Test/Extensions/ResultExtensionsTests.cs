@@ -134,7 +134,11 @@ public sealed class ResultExtensionsTests
     public void Bind_when_foreign_failure_becomes_a_status_code_failure()
     {
         new ResultExtensionsTestScenario()
-            .GivenTheSource(new ForeignResult<string>(false, null, "gone", 410))
+            .GivenTheSource(new ForeignResult<string>(
+                false,
+                null,
+                "gone",
+                410))
             .WhenBinding()
             .ThenItFailsAs<StatusCodeFailureResult<string>>(code: 410, detail: "gone")
             .ThenTheFunctionRan(times: 0);
@@ -144,7 +148,11 @@ public sealed class ResultExtensionsTests
     public void Bind_when_foreign_success_runs_the_function()
     {
         new ResultExtensionsTestScenario()
-            .GivenTheSource(new ForeignResult<string>(true, "value", null, 200))
+            .GivenTheSource(new ForeignResult<string>(
+                true,
+                "value",
+                null,
+                200))
             .GivenTheNextStepReturns(new SuccessResult<string>("next"))
             .WhenBinding()
             .ThenItSucceedsWith("next")

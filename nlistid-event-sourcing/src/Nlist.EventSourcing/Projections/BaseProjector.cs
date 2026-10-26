@@ -24,14 +24,18 @@ public abstract class BaseProjector<T> : IProjector<T>
     /// </summary>
     protected BaseProjector(Guid aggregateId, T? model = null)
     {
-        if (model is not null && model.Id != aggregateId)
-        {
-            throw new InvalidOperationException($"Read model is for {model.Id}, not stream {aggregateId}.");
-        }
+        var isModelForThisStream = model is null || model.Id == aggregateId;
 
-        this.AggregateId = aggregateId;
-        this.Model = model ?? new T { Id = aggregateId };
-        this.OriginalVersion = this.Model.Version;
+        if (isModelForThisStream)
+        {
+            this.AggregateId = aggregateId;
+            this.Model = model ?? new T { Id = aggregateId };
+            this.OriginalVersion = this.Model.Version;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Read model is for {model!.Id}, not stream {aggregateId}.");
+        }
     }
 
     /// <summary>The stream this projector follows.</summary>
@@ -64,41 +68,64 @@ public abstract class BaseProjector<T> : IProjector<T>
     /// </summary>
     public IResult<bool> Project(IEnumerable<IEvent> events)
     {
-        var pending = new List<IEvent>();
-        var next = this.Version + 1;
+        return this.CheckPendingEvents(events)
+            .Map(this.ApplyPendingEvents)
+            .Map(appliedEvents => appliedEvents.Count != 0);
+    }
+
+    // Checks every event before any is applied, stopping at the first invalid one.
+    private IResult<List<IEvent>> CheckPendingEvents(IEnumerable<IEvent> events)
+    {
+        var pendingEvents = new List<IEvent>();
+        var nextVersion = this.Version + 1;
+
+        // Success result holding the events checked so far.
+        IResult<List<IEvent>> result = ResultFactory.Success(pendingEvents);
 
         foreach (var @event in events)
         {
+            var isEventForThisStream = @event.AggregateType == this.AggregateType
+                && @event.AggregateId == this.AggregateId;
+            var isEventNextVersion = @event.Version == nextVersion;
+
+            if (isEventForThisStream && isEventNextVersion)
+            {
+                pendingEvents.Add(@event);
+                nextVersion++;
+            }
+            // Already applied (a redelivery) or a gap: the event is not the next one.
+            else if (isEventForThisStream)
+            {
+                var detail = $"Event {@event.EventId} is version {@event.Version} but projection {this.AggregateId} expects {nextVersion}.";
+
+                result = ResultFactory.ConflictFailure<List<IEvent>>(detail);
+                break;
+            }
             // A routing bug, not a delivery problem: retrying will not help.
-            if (@event.AggregateType != this.AggregateType || @event.AggregateId != this.AggregateId)
+            else
             {
                 var detail = $"Event {@event.EventId} belongs to {@event.AggregateType} {@event.AggregateId}, not {this.AggregateType} {this.AggregateId}.";
 
-                return ResultFactory.UnexpectedFailure<bool>(detail);
+                result = ResultFactory.UnexpectedFailure<List<IEvent>>(detail);
+                break;
             }
-
-            // Already applied (a redelivery) or a gap: the event is not the next one.
-            if (@event.Version != next)
-            {
-                var detail = $"Event {@event.EventId} is version {@event.Version} but projection {this.AggregateId} expects {next}.";
-
-                return ResultFactory.ConflictFailure<bool>(detail);
-            }
-
-            pending.Add(@event);
-            next++;
         }
 
-        foreach (var @event in pending)
+        return result;
+    }
+
+    private List<IEvent> ApplyPendingEvents(List<IEvent> pendingEvents)
+    {
+        foreach (var @event in pendingEvents)
         {
-            var applied = this.Apply(this.Model, @event);
+            var appliedModel = this.Apply(this.Model, @event);
 
-            applied.Id = this.AggregateId;
-            applied.Version = @event.Version;
+            appliedModel.Id = this.AggregateId;
+            appliedModel.Version = @event.Version;
 
-            this.Model = applied;
+            this.Model = appliedModel;
         }
 
-        return ResultFactory.Success(pending.Count != 0);
+        return pendingEvents;
     }
 }

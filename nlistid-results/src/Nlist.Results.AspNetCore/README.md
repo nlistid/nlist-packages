@@ -13,23 +13,23 @@ app.MapGet("/users/{id}", (int id) => factory.ToHttpResult(GetUser(id)));
 
 ## Mapping
 
-From `HttpResultFactory.cs`, matching on `result.Map(value => value)`:
+From `HttpResultFactory.cs`, matching on `rebuiltResult`, which is `result.Map(value => value)`:
 
 ```csharp
-SuccessResult<T> r => Http.Results.Json(r.Value, statusCode: r.Code),
-ValidationFailureResult<T> r => Http.Results.ValidationProblem(
-    errors: r.Errors,
-    detail: r.Detail,
-    statusCode: r.Code),
-RateLimitedFailureResult<T> r => this.httpResultHeaderDecoratorFactory.WithRetryAfter(
+SuccessResult<T> success => Http.Results.Json(success.Value, statusCode: success.Code),
+ValidationFailureResult<T> validationFailure => Http.Results.ValidationProblem(
+    errors: validationFailure.Errors,
+    detail: validationFailure.Detail,
+    statusCode: validationFailure.Code),
+RateLimitedFailureResult<T> failure => this.httpResultHeaderDecoratorFactory.WithRetryAfter(
     Http.Results.Problem(
-        detail: r.Detail,
-        statusCode: r.Code),
-    r.RetryAfter),
+        detail: failure.Detail,
+        statusCode: failure.Code),
+    failure.RetryAfter),
 // every other failure:
-FailureResult<T> r => Http.Results.Problem(
-    detail: r.Detail,
-    statusCode: r.Code),
+FailureResult<T> failure => Http.Results.Problem(
+    detail: failure.Detail,
+    statusCode: failure.Code),
 ```
 
 - Status always comes from the result's `Code`.

@@ -14,8 +14,8 @@ baggage and correlation. Published by `nlistid-telemetry.yml`.
 services.AddTelemetry();
 
 services.AddOpenTelemetry()
-    .WithTracing(b => b.AddSource(TelemetryTracer.Name))
-    .WithMetrics(b => b.AddMeter(TelemetryTracer.Name));
+    .WithTracing(tracing => tracing.AddSource(TelemetryTracer.Name))
+    .WithMetrics(metrics => metrics.AddMeter(TelemetryTracer.Name));
 ```
 
 ```csharp
