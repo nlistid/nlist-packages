@@ -8,7 +8,7 @@ using Http = Microsoft.AspNetCore.Http;
 /// ASP.NET Core, so failures are shared as <c>ProblemDetails</c> / <c>ValidationProblemDetails</c>
 /// without this library defining its own error contract.
 /// </summary>
-public class HttpResultFactory
+public class HttpResultFactory : IHttpResultFactory
 {
     private readonly HttpResultHeaderDecoratorFactory httpResultHeaderDecoratorFactory = new();
 
