@@ -7,6 +7,7 @@ baggage and correlation. Published by `nlistid-telemetry.yml`.
 |---|---|---|
 | `Nlist.Telemetry.Abstractions` | `ITelemetry<T>` and the interfaces behind it | nothing |
 | `Nlist.Telemetry` | The implementation and `services.AddTelemetry()` | Abstractions, `OpenTelemetry.Api` |
+| `Nlist.Telemetry.Test` | MSTest tests. Not packed. | Both of the above |
 
 ## Example
 
@@ -24,9 +25,12 @@ telemetry.Logging.LogInformation("Sending emails.");
 telemetry.Metrics.IncrementCounter("EnquiryEmailsSent");
 ```
 
-## Build
+## Build / test
 
 ```bash
 cd src/Nlist.Telemetry   # also builds Nlist.Telemetry.Abstractions
 dotnet build
+
+cd ../Nlist.Telemetry.Test
+dotnet test
 ```
