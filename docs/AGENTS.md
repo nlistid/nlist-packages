@@ -4,35 +4,31 @@ Guidance for Claude Code (claude.ai/code) in this repository.
 
 ## Repo shape
 
-Three independent .NET package families. No root `.sln` — run `dotnet` commands from each project's folder.
+Three independent .NET package families. Each builds, versions and publishes on its own and has
+its own `docs/AGENTS.md` with its projects, build, tests and release. No root `.sln` — run
+`dotnet` commands from each project's folder. `/repo-structure` says where folders and docs go.
 
-- `nlistid-results/src/`
-  - `Nlist.Results.Abstractions` — `IResult<T>` only. No runtime dependencies (StyleCop only, private).
-  - `Nlist.Results` — `Result<T>`, the failure types, `ResultFactory`, `Bind`/`Map`/`OnSuccess`/`OnFailure`.
-  - `Nlist.Results.AspNetCore` — `HttpResultFactory`, maps results to problem-details responses.
-  - `Nlist.Results.Test` — MSTest BDD tests for `ResultExtensions` and `HttpResultFactory`. Not packed.
-  - `nlistid-results/SPEC.md` — the rules. Keep it in sync with the type set, `Bind`/`Map` and HTTP mapping.
-- `nlistid-telemetry/src/`
-  - `Nlist.Telemetry.Abstractions` — interfaces only. **Must never take a `PackageReference`.**
-  - `Nlist.Telemetry` — the OpenTelemetry-shaped `ITelemetry<T>` implementation.
-- `nlistid-event-sourcing/src/`
-  - `Nlist.EventSourcing.Abstractions` — interfaces only: events, snapshots, entities, repositories,
-    `IAggregate<T>`, `IDecider<…>`. `PackageReference` to `Nlist.Results.Abstractions` 2.0.1.
-  - `Nlist.EventSourcing` — `BaseAggregate<T>`. `PackageReference` to `Nlist.Results` 2.0.1.
-  - Both restore `Nlist.Results` packages from GitHub Packages.
+| Folder | Packages | Guide |
+|---|---|---|
+| `nlistid-results/` | `Nlist.Results`, `.Abstractions`, `.AspNetCore` | `nlistid-results/docs/AGENTS.md` |
+| `nlistid-telemetry/` | `Nlist.Telemetry`, `.Abstractions` | `nlistid-telemetry/docs/AGENTS.md` |
+| `nlistid-event-sourcing/` | `Nlist.EventSourcing`, `.Abstractions` | `nlistid-event-sourcing/docs/AGENTS.md` |
 
-## Build / format
+`docs/TODO.md` lists ideas for new families. None are started.
 
-```bash
-cd <project dir>
-dotnet build
-dotnet format --verify-no-changes   # run before committing in nlistid-results
-```
+## Shared
 
 - The root `.editorconfig` applies to every project (4 spaces, file-scoped namespaces).
-- `nlistid-results` libraries also set `EnforceCodeStyleInBuild=true` and use StyleCop
-  (camelCase private fields with no `_`, `this.` qualification).
-- `nlistid-telemetry` and `nlistid-event-sourcing` have no StyleCop — match the surrounding code.
+- Skills in `.claude/skills/`: `/code-structure`, `/bdd-tests`, `/release-package`, `/repo-structure`.
+- Code style: camelCase private fields with no `_`, `this.` qualification, file-scoped namespaces.
+  Only `nlistid-results` enforces it, with StyleCop; elsewhere match the surrounding code.
+
+## References
+
+- Inside a family, siblings use plain `ProjectReference`s. `dotnet pack` turns each into a NuGet
+  dependency at the version being packed, so no versions are pinned by hand.
+- Across families, use a `PackageReference` to a published version, never a `ProjectReference`
+  into another family's folder. Today only `nlistid-event-sourcing` does this, on `Nlist.Results`.
 
 ## Publishing
 
@@ -42,14 +38,9 @@ dotnet format --verify-no-changes   # run before committing in nlistid-results
 | `nlistid-telemetry.yml` | `Nlist.Telemetry`, `Nlist.Telemetry.Abstractions` |
 | `nlistid-event-sourcing.yml` | `Nlist.EventSourcing`, `Nlist.EventSourcing.Abstractions` |
 
-- Triggered by a push to `main` touching a library project folder or the workflow file, or by `workflow_dispatch`.
+- Triggered by a push to `main` touching a library project folder or the workflow file, or by
+  `workflow_dispatch`. A change to a test project alone doesn't publish.
 - The version is `env.VERSION` at the top of the workflow. Bump it to release.
 - No "already published" check: a run without a bump fails at `dotnet nuget push`.
 - Set `PackageId` in the `.csproj`, never `/p:PackageId=...` (causes `Ambiguous project name`).
 - `/release-package` (`.claude/skills/release-package/SKILL.md`) walks through a release.
-
-## References
-
-Inside each family, siblings use plain `ProjectReference`s.
-`dotnet pack` turns each into a NuGet dependency at the version being packed, so no versions
-are pinned by hand.

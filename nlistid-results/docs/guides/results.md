@@ -125,4 +125,4 @@ string message = result switch
 };
 ```
 
-See [SPEC.md](../../SPEC.md) for the full contract, and `Nlist.Results.AspNetCore` for HTTP mapping.
+See [SPEC.md](../SPEC.md) for the full contract, and `Nlist.Results.AspNetCore` for HTTP mapping.

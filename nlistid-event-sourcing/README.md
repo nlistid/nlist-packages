@@ -288,3 +288,13 @@ if (result.IsSuccess && projector.HasChanges)
 - The handler routes: pass only this stream's events. An event of another aggregate type or stream
   is an unexpected failure from `Project`, and nothing is applied.
 - The constructor throws `InvalidOperationException` if the read model is for another stream.
+
+## Build
+
+```bash
+cd src/Nlist.EventSourcing   # also builds Nlist.EventSourcing.Abstractions
+dotnet build
+```
+
+Restores `Nlist.Results` packages from GitHub Packages, so it needs the source from
+[Install](../README.md#install).

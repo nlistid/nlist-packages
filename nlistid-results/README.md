@@ -28,9 +28,9 @@ problem details response with the failure's status, e.g. `NotFoundFailureResult<
 
 ## Docs
 
-- [Nlist.Results](src/Nlist.Results/README.md) — the result types, creating, chaining and matching
-- [Nlist.Results.AspNetCore](src/Nlist.Results.AspNetCore/README.md) — HTTP mapping and example responses
-- [SPEC.md](SPEC.md) — the rules the code must keep
+- [Nlist.Results](docs/guides/results.md) — the result types, creating, chaining and matching
+- [Nlist.Results.AspNetCore](docs/guides/aspnetcore.md) — HTTP mapping and example responses
+- [SPEC.md](docs/SPEC.md) — the rules the code must keep
 
 ## Build
 
