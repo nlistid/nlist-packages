@@ -13,7 +13,7 @@ docs go.
 |---|---|---|
 | `nlistid-results/` | `NlistId.Results`, `.Abstractions`, `.AspNetCore` | `nlistid-results/docs/AGENTS.md` |
 | `nlistid-telemetry/` | `NlistId.Telemetry`, `.Abstractions` | `nlistid-telemetry/docs/AGENTS.md` |
-| `nlistid-event-sourcing/` | `Nlist.EventSourcing`, `.Abstractions` | `nlistid-event-sourcing/docs/AGENTS.md` |
+| `nlistid-event-sourcing/` | `NlistId.EventSourcing`, `.Abstractions` | `nlistid-event-sourcing/docs/AGENTS.md` |
 
 `docs/TODO.md` lists ideas for new families. None are started.
 
@@ -31,7 +31,7 @@ docs go.
 - Inside a family, siblings use plain `ProjectReference`s. `dotnet pack` turns each into a NuGet
   dependency at the version being packed, so no versions are pinned by hand.
 - Across families, use a `PackageReference` to a published version, never a `ProjectReference`
-  into another family's folder. Today only `nlistid-event-sourcing` does this, on `Nlist.Results`.
+  into another family's folder. Today only `nlistid-event-sourcing` does this, on `NlistId.Results`.
 
 ## Publishing
 
@@ -39,7 +39,7 @@ docs go.
 |---|---|---|
 | `nlistid-results.yml` | `nlistid-results-pr.yml` | `NlistId.Results`, `NlistId.Results.Abstractions`, `NlistId.Results.AspNetCore` |
 | `nlistid-telemetry.yml` | `nlistid-telemetry-pr.yml` | `NlistId.Telemetry`, `NlistId.Telemetry.Abstractions` |
-| `nlistid-event-sourcing.yml` | `nlistid-event-sourcing-pr.yml` | `Nlist.EventSourcing`, `Nlist.EventSourcing.Abstractions` |
+| `nlistid-event-sourcing.yml` | `nlistid-event-sourcing-pr.yml` | `NlistId.EventSourcing`, `NlistId.EventSourcing.Abstractions` |
 
 - Every family's `-pr.yml` tests and packs it on each pull request, through the same composite
   action, `.github/actions/build-package/`, its publish workflow uses.

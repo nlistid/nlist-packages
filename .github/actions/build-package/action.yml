@@ -21,7 +21,7 @@ runs:
       with:
         dotnet-version: '10.0.x'
 
-    # Nlist.EventSourcing restores Nlist.Results from GitHub Packages. NuGet
+    # NlistId.EventSourcing restores NlistId.Results from GitHub Packages. NuGet
     # reads the source's credentials from NuGetPackageSourceCredentials_github-nlist,
     # so no file holds the token.
     - name: Add the GitHub Packages source

@@ -1,21 +1,21 @@
 # AGENTS.md — nlistid-event-sourcing
 
-The `Nlist.EventSourcing` package family.
+The `NlistId.EventSourcing` package family.
 
 ## Projects
 
 All under `src/`:
 
-- `Nlist.EventSourcing.Abstractions` — interfaces only: events, snapshots, entities, repositories,
+- `NlistId.EventSourcing.Abstractions` — interfaces only: events, snapshots, entities, repositories,
   `IAggregate<T>`, `IDecider<…>`, `IProjector<T>`, `IProjectionRepository`. Its only dependency is
-  `Nlist.Results.Abstractions`.
-- `Nlist.EventSourcing` — `BaseAggregate<T>` and `BaseProjector<T>`. Depends on `Nlist.Results`.
-- `Nlist.EventSourcing.Test` — MSTest BDD tests for `BaseAggregate<T>` and `BaseProjector<T>`.
+  `NlistId.Results.Abstractions`.
+- `NlistId.EventSourcing` — `BaseAggregate<T>` and `BaseProjector<T>`. Depends on `NlistId.Results`.
+- `NlistId.EventSourcing.Test` — MSTest BDD tests for `BaseAggregate<T>` and `BaseProjector<T>`.
   Not packed. Fakes (`Counter*`, `TestEventContext`) live in `Fakes/`.
 
-## Nlist.Results dependency
+## NlistId.Results dependency
 
-- Keep the `Nlist.Results` and `Nlist.Results.Abstractions` `PackageReference`s at the same version.
+- Keep the `NlistId.Results` and `NlistId.Results.Abstractions` `PackageReference`s at the same version.
 - To use a change in `nlistid-results`, release it there first, then bump both references here.
 - They restore from GitHub Packages (`https://nuget.pkg.github.com/nlistid/index.json`). The repo
   has no `nuget.config`, so that source must be set up on the machine.
@@ -39,10 +39,10 @@ broken:
 ## Build / test
 
 ```bash
-cd src/Nlist.EventSourcing   # also builds Nlist.EventSourcing.Abstractions
+cd src/NlistId.EventSourcing   # also builds NlistId.EventSourcing.Abstractions
 dotnet build
 
-cd ../Nlist.EventSourcing.Test
+cd ../NlistId.EventSourcing.Test
 dotnet test
 ```
 

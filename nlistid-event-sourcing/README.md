@@ -1,12 +1,17 @@
-# Nlist.EventSourcing
+# NlistId.EventSourcing
 
 Event-sourced aggregates, in two styles: a mutable aggregate or a pure decider.
 Published by `nlistid-event-sourcing.yml`.
 
+Up to 2.1.1 the packages were `Nlist.EventSourcing` and `Nlist.EventSourcing.Abstractions`, on
+`Nlist.Results`; `NlistId.EventSourcing` 2.2.0 is 2.1.1 under the new ids, on `NlistId.Results`.
+The old versions stay on GitHub Packages until every consumer has moved; moving is the new
+`PackageReference` and `using NlistId.EventSourcing`, together with `NlistId.Results`.
+
 | Project | Holds | References |
 |---|---|---|
-| `Nlist.EventSourcing.Abstractions` | `IEvent`, `IEventIdentity`, `ISnapshot<T>`, `IEntity`, `IEventContext`, `IEventRepository`, `ISnapshotRepository`, `IAggregate<T>`, `IDecider<TCommand, TEvent, TState>`, `IProjector<T>`, `IProjectionRepository` | `Nlist.Results.Abstractions` 2.0.1 |
-| `Nlist.EventSourcing` | `BaseAggregate<T>`, `BaseProjector<T>` | Abstractions, `Nlist.Results` 2.0.1 |
+| `NlistId.EventSourcing.Abstractions` | `IEvent`, `IEventIdentity`, `ISnapshot<T>`, `IEntity`, `IEventContext`, `IEventRepository`, `ISnapshotRepository`, `IAggregate<T>`, `IDecider<TCommand, TEvent, TState>`, `IProjector<T>`, `IProjectionRepository` | `NlistId.Results.Abstractions` 2.2.0 |
+| `NlistId.EventSourcing` | `BaseAggregate<T>`, `BaseProjector<T>` | Abstractions, `NlistId.Results` 2.2.0 |
 
 ## Events and state
 
@@ -292,9 +297,9 @@ if (result.IsSuccess && projector.HasChanges)
 ## Build
 
 ```bash
-cd src/Nlist.EventSourcing   # also builds Nlist.EventSourcing.Abstractions
+cd src/NlistId.EventSourcing   # also builds NlistId.EventSourcing.Abstractions
 dotnet build
 ```
 
-Restores `Nlist.Results` packages from GitHub Packages, so it needs the source from
+Restores `NlistId.Results` packages from GitHub Packages, so it needs the source from
 [Install](../README.md#install).

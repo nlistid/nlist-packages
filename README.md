@@ -6,7 +6,7 @@ Small, focused .NET 10 libraries for building services. Published to GitHub Pack
 |---|---|---|
 | [`nlistid-results/`](nlistid-results/README.md) | `NlistId.Results`, `.Abstractions`, `.AspNetCore` | Typed results instead of exceptions for expected failures, mapped to problem-details HTTP responses |
 | [`nlistid-telemetry/`](nlistid-telemetry/README.md) | `NlistId.Telemetry`, `.Abstractions` | One injectable `ITelemetry<T>` for tracing, logging, metrics, baggage and correlation, built on OpenTelemetry |
-| [`nlistid-event-sourcing/`](nlistid-event-sourcing/README.md) | `Nlist.EventSourcing`, `.Abstractions` | Event-sourced aggregates and deciders, snapshots, projections and repository interfaces |
+| [`nlistid-event-sourcing/`](nlistid-event-sourcing/README.md) | `NlistId.EventSourcing`, `.Abstractions` | Event-sourced aggregates and deciders, snapshots, projections and repository interfaces |
 
 Each family's README has its examples, docs and build steps.
 

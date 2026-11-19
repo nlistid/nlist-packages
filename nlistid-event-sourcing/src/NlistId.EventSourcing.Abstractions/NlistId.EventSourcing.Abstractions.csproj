@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>NlistId.EventSourcing.Abstractions</PackageId>
+    <Description>Contract types for NlistId.EventSourcing</Description>
+    <Authors>nlistid</Authors>
+    <RepositoryUrl>https://github.com/nlistid/nlistid-packages</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NlistId.Results.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>
