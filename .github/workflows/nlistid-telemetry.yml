@@ -36,6 +36,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # Runs before any pack step, so a failing test stops the release before anything is pushed.
+      - name: Test Nlist.Telemetry
+        run: >
+          dotnet test nlistid-telemetry/src/Nlist.Telemetry.Test/Nlist.Telemetry.Test.csproj
+          --configuration Release
+
       # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
       # command line becomes a global MSBuild property that cascades into the ProjectReference
       # restore graph and makes NuGet throw "Ambiguous project name".
