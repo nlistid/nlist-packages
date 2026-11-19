@@ -23,6 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
+      # Packed only to check the packages build. Nothing is pushed.
       - name: Build
         uses: ./.github/actions/build-package
         with:
@@ -30,3 +31,4 @@ jobs:
           projects: |
             nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/Nlist.EventSourcing.Abstractions.csproj
             nlistid-event-sourcing/src/Nlist.EventSourcing/Nlist.EventSourcing.csproj
+          version: 0.0.0-pr

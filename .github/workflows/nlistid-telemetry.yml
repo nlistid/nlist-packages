@@ -14,9 +14,6 @@ permissions: {}
 
 env:
   VERSION: 2.1.2
-  # Every package in the family ships at the same version, so the guard checks
-  # the main one.
-  PACKAGE_ID: Nlist.Telemetry
 
 jobs:
   build:
@@ -25,9 +22,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-
-    outputs:
-      publish: ${{ steps.guard.outputs.publish }}
 
     steps:
       - name: Check out
@@ -52,56 +46,28 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      # GitHub Packages answers 404 for a package never published, so that
-      # releases too. Any other answer stops the run.
-      - name: Check whether this version is already published
-        id: guard
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          package_path=$(printf '%s' "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
-
-          status=$(curl --silent \
-            --output "$RUNNER_TEMP/versions.json" \
-            --write-out '%{http_code}' \
-            --user "github:$GITHUB_TOKEN" \
-            "https://nuget.pkg.github.com/nlistid/download/$package_path/index.json")
-
-          if [ "$status" = 200 ] && jq --exit-status --arg version "$VERSION" 'any(.versions[]; . == $version)' "$RUNNER_TEMP/versions.json" > /dev/null; then
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "$PACKAGE_ID $VERSION is already published - nothing will be released"
-          elif [ "$status" = 200 ] || [ "$status" = 404 ]; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "$VERSION is not on the registry - this run releases it"
-          else
-            echo "::error::GitHub Packages answered $status"
-            exit 1
-          fi
-
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && needs.build.outputs.publish == 'true'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     permissions:
       packages: write
 
     steps:
-      - name: Install the .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.0.x'
-
       - name: Download the packages
         uses: actions/download-artifact@v7
         with:
           name: nupkgs
           path: nupkgs
 
+      # GitHub Packages answers 409 Conflict for a version it already has, and
+      # --skip-duplicate passes over it, so a run without a bump publishes nothing.
       - name: Push to GitHub Packages
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           dotnet nuget push "nupkgs/*.nupkg" \
             --source https://nuget.pkg.github.com/nlistid/index.json \
-            --api-key "$GITHUB_TOKEN"
+            --api-key "$GITHUB_TOKEN" \
+            --skip-duplicate

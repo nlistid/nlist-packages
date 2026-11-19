@@ -9,8 +9,8 @@ Release one of this repo's three package families (`results` → `Nlist.Results.
 `Nlist.Telemetry`, or `event-sourcing` → `Nlist.EventSourcing.Abstractions` +
 `Nlist.EventSourcing`). Each family publishes from its own workflow, which tests, packs and
 pushes every package in the family under the same version. There is no combined release across
-families. The workflow checks GitHub Packages first: if `VERSION` is already there, the run
-tests and packs but publishes nothing.
+families. The push skips a version GitHub Packages already has, so a run without a bump tests and
+packs but publishes nothing.
 
 Use `$ARGUMENTS` to pick the family and target version, e.g. `/release-package results 1.2.0` or
 `/release-package event-sourcing 2.2.0`. If no version is given, ask for one — do not guess or
@@ -63,7 +63,8 @@ float to "whatever's next".
    gh run list --workflow=<workflow-file> --limit 1
    gh run watch   # if the run is still in progress
    ```
-   A run whose `publish` job was skipped found `VERSION` already published: the bump didn't take.
+   A push step that logs `has already been pushed` found `VERSION` already published: the bump
+   didn't take.
    Then confirm the package version is live:
    ```bash
    gh api /orgs/nlistid/packages/nuget/<PACKAGE_ID>/versions --jq '.[0].name'

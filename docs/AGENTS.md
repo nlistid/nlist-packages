@@ -44,8 +44,8 @@ its own `docs/AGENTS.md` with its projects, build, tests and release. No root `.
   action, or by `workflow_dispatch`.
 - The version is `env.VERSION` at the top of the workflow. Bumping it is the release: the bump goes
   through a pull request, and merging it publishes.
-- The build checks GitHub Packages first. If `VERSION` is already published, the run tests and
-  packs but publishes nothing.
+- The push passes `--skip-duplicate`, so a version already on GitHub Packages is skipped: a run
+  without a bump tests and packs but publishes nothing.
 - Set `PackageId`, `Description`, `Authors` and `RepositoryUrl` in the `.csproj`, never as
   `/p:...` on the command line (`/p:PackageId` causes `Ambiguous project name`).
 - `/release-package` (`.claude/skills/release-package/SKILL.md`) walks through a release.

@@ -1,5 +1,5 @@
 name: build-package
-description: 'Test a package family, then pack each of its packages'
+description: 'Test a package family, then pack each of its packages into nupkgs/'
 
 inputs:
   testProject:
@@ -9,13 +9,8 @@ inputs:
     description: 'Projects to pack, one per line'
     required: true
   version:
-    description: 'Version stamped on the packages; empty leaves each project its own'
-    required: false
-    default: ''
-  output:
-    description: 'Folder the packages are written to, under the workspace'
-    required: false
-    default: 'nupkgs'
+    description: 'Version stamped on the packages'
+    required: true
 
 runs:
   using: composite
@@ -51,14 +46,8 @@ runs:
       env:
         PROJECTS: ${{ inputs.projects }}
         VERSION: ${{ inputs.version }}
-        OUTPUT: ${{ inputs.output }}
         NuGetPackageSourceCredentials_github-nlist: Username=github;Password=${{ github.token }}
       run: |
-        while read -r project; do
-          if [ -n "$project" ]; then
-            dotnet pack "$project" \
-              --configuration Release \
-              --output "$OUTPUT" \
-              ${VERSION:+"-p:Version=$VERSION"}
-          fi
-        done <<< "$PROJECTS"
+        for project in $PROJECTS; do
+          dotnet pack "$project" --configuration Release --output nupkgs -p:Version="$VERSION"
+        done

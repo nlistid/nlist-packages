@@ -23,6 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
+      # Packed only to check the packages build. Nothing is pushed.
       - name: Build
         uses: ./.github/actions/build-package
         with:
@@ -31,3 +32,4 @@ jobs:
             nlistid-results/src/Nlist.Results.Abstractions/Nlist.Results.Abstractions.csproj
             nlistid-results/src/Nlist.Results/Nlist.Results.csproj
             nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj
+          version: 0.0.0-pr
