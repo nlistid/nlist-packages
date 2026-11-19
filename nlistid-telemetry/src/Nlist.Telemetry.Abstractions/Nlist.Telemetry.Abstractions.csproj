@@ -9,7 +9,7 @@
     <PackageId>Nlist.Telemetry.Abstractions</PackageId>
     <Description>Contract types for Nlist.Telemetry</Description>
     <Authors>nlistid</Authors>
-    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
+    <RepositoryUrl>https://github.com/nlistid/nlistid-packages</RepositoryUrl>
   </PropertyGroup>
 
 </Project>

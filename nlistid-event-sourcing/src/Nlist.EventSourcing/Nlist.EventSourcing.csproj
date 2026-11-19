@@ -7,7 +7,7 @@
     <PackageId>Nlist.EventSourcing</PackageId>
     <Description>Event-sourced aggregates for .NET</Description>
     <Authors>nlistid</Authors>
-    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
+    <RepositoryUrl>https://github.com/nlistid/nlistid-packages</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

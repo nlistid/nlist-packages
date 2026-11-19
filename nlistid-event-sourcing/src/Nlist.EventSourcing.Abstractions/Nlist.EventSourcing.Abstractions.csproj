@@ -7,7 +7,7 @@
     <PackageId>Nlist.EventSourcing.Abstractions</PackageId>
     <Description>Contract types for Nlist.EventSourcing</Description>
     <Authors>nlistid</Authors>
-    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
+    <RepositoryUrl>https://github.com/nlistid/nlistid-packages</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
