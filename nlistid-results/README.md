@@ -1,14 +1,19 @@
-# Nlist.Results
+# NlistId.Results
 
 Return a `Result<T>` instead of throwing for expected failures, then map it to an HTTP response.
 Published by `nlistid-results.yml`.
 
+Up to 2.1.2 the packages were `Nlist.Results`, `Nlist.Results.Abstractions` and
+`Nlist.Results.AspNetCore`; `NlistId.Results` 2.2.0 is 2.1.2 under the new ids. The old versions
+stay on GitHub Packages until every consumer has moved; moving is the new `PackageReference` and
+`using NlistId.Results`.
+
 | Project | Holds | References |
 |---|---|---|
-| `Nlist.Results.Abstractions` | `IResult<T>` | nothing |
-| `Nlist.Results` | `Result<T>`, the failure types, `ResultFactory`, `Bind`/`Map` extensions on `IResult<T>` | Abstractions |
-| `Nlist.Results.AspNetCore` | `HttpResultFactory` | Results, Abstractions |
-| `Nlist.Results.Test` | MSTest BDD tests for `ResultExtensions` and `HttpResultFactory`. Not packed. | Results, Abstractions, AspNetCore |
+| `NlistId.Results.Abstractions` | `IResult<T>` | nothing |
+| `NlistId.Results` | `Result<T>`, the failure types, `ResultFactory`, `Bind`/`Map` extensions on `IResult<T>` | Abstractions |
+| `NlistId.Results.AspNetCore` | `HttpResultFactory` | Results, Abstractions |
+| `NlistId.Results.Test` | MSTest BDD tests for `ResultExtensions` and `HttpResultFactory`. Not packed. | Results, Abstractions, AspNetCore |
 
 ## Example
 
@@ -28,14 +33,14 @@ problem details response with the failure's status, e.g. `NotFoundFailureResult<
 
 ## Docs
 
-- [Nlist.Results](docs/guides/results.md) — the result types, creating, chaining and matching
-- [Nlist.Results.AspNetCore](docs/guides/aspnetcore.md) — HTTP mapping and example responses
+- [NlistId.Results](docs/guides/results.md) — the result types, creating, chaining and matching
+- [NlistId.Results.AspNetCore](docs/guides/aspnetcore.md) — HTTP mapping and example responses
 - [SPEC.md](docs/SPEC.md) — the rules the code must keep
 
 ## Build
 
 ```bash
-cd src/Nlist.Results.AspNetCore   # also builds Nlist.Results + Abstractions
+cd src/NlistId.Results.AspNetCore   # also builds NlistId.Results + Abstractions
 dotnet build
 dotnet format --verify-no-changes
 ```

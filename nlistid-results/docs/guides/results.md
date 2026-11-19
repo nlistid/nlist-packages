@@ -1,4 +1,4 @@
-# Nlist.Results
+# NlistId.Results
 
 Return a `Result<T>` instead of throwing for expected failures.
 
@@ -17,7 +17,7 @@ Return a `Result<T>` instead of throwing for expected failures.
 | `StatusCodeFailureResult<T>` | any | No other type fits; carries its own `Code` |
 
 Every failure type extends `FailureResult<T>`. All results implement `IResult<T>` from
-`Nlist.Results.Abstractions`:
+`NlistId.Results.Abstractions`:
 
 ```csharp
 public interface IResult<out T>
@@ -125,4 +125,4 @@ string message = result switch
 };
 ```
 
-See [SPEC.md](../SPEC.md) for the full contract, and `Nlist.Results.AspNetCore` for HTTP mapping.
+See [SPEC.md](../SPEC.md) for the full contract, and `NlistId.Results.AspNetCore` for HTTP mapping.

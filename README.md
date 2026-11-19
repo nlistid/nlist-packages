@@ -4,7 +4,7 @@ Small, focused .NET 10 libraries for building services. Published to GitHub Pack
 
 | Family | Packages | What it does |
 |---|---|---|
-| [`nlistid-results/`](nlistid-results/README.md) | `Nlist.Results`, `.Abstractions`, `.AspNetCore` | Typed results instead of exceptions for expected failures, mapped to problem-details HTTP responses |
+| [`nlistid-results/`](nlistid-results/README.md) | `NlistId.Results`, `.Abstractions`, `.AspNetCore` | Typed results instead of exceptions for expected failures, mapped to problem-details HTTP responses |
 | [`nlistid-telemetry/`](nlistid-telemetry/README.md) | `Nlist.Telemetry`, `.Abstractions` | One injectable `ITelemetry<T>` for tracing, logging, metrics, baggage and correlation, built on OpenTelemetry |
 | [`nlistid-event-sourcing/`](nlistid-event-sourcing/README.md) | `Nlist.EventSourcing`, `.Abstractions` | Event-sourced aggregates and deciders, snapshots, projections and repository interfaces |
 
@@ -25,7 +25,7 @@ dotnet nuget add source https://nuget.pkg.github.com/nlistid/index.json \
 
 # NuGet stores `%GITHUB_PACKAGES_TOKEN%` and reads the variable at restore.
 
-dotnet add package Nlist.Results
+dotnet add package NlistId.Results
 ```
 
 ## Monorepo

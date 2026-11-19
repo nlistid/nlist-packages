@@ -1,11 +1,11 @@
 ---
 name: release-package
-description: Cut a release of the Nlist.Results, Nlist.Telemetry or Nlist.EventSourcing package family by bumping the workflow's VERSION in a pull request and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of a package.
+description: Cut a release of the NlistId.Results, Nlist.Telemetry or Nlist.EventSourcing package family by bumping the workflow's VERSION in a pull request and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of a package.
 disable-model-invocation: true
 ---
 
-Release one of this repo's three package families (`results` → `Nlist.Results.Abstractions` +
-`Nlist.Results` + `Nlist.Results.AspNetCore`, `telemetry` → `Nlist.Telemetry.Abstractions` +
+Release one of this repo's three package families (`results` → `NlistId.Results.Abstractions` +
+`NlistId.Results` + `NlistId.Results.AspNetCore`, `telemetry` → `Nlist.Telemetry.Abstractions` +
 `Nlist.Telemetry`, or `event-sourcing` → `Nlist.EventSourcing.Abstractions` +
 `Nlist.EventSourcing`). Each family publishes from its own workflow, which tests, packs and
 pushes every package in the family under the same version. There is no combined release across
@@ -23,7 +23,7 @@ float to "whatever's next".
    - `telemetry` → `.github/workflows/nlistid-telemetry.yml`
    - `event-sourcing` → `.github/workflows/nlistid-event-sourcing.yml`
 
-   Its `PACKAGE_ID` is the family's main package (`Nlist.Results`, `Nlist.Telemetry` or
+   Its `PACKAGE_ID` is the family's main package (`NlistId.Results`, `Nlist.Telemetry` or
    `Nlist.EventSourcing`).
 
 2. **Check the current published version** before bumping, so the new version is actually higher:
@@ -35,15 +35,16 @@ float to "whatever's next".
    `env.VERSION` already in the workflow file.
 
 3. **Release what it depends on first.** `Nlist.EventSourcing` takes `PackageReference`s to
-   `Nlist.Results` and `Nlist.Results.Abstractions`. If the release needs a new `Nlist.Results`,
-   release `results` first, check it landed, then update those references in the same pull
+   `Nlist.Results` and `Nlist.Results.Abstractions`, the ids `results` published before it moved
+   to `NlistId.Results`. If the release needs a newer one, release `results` first, check it
+   landed, then switch those references and their `using`s to `NlistId.Results` in the same pull
    request as the `event-sourcing` bump.
 
 4. **Branch, then edit `env.VERSION`** in the workflow file to the requested version
    (`way-of-working`: e.g. `feat/release-results-1-2-0`).
 
 5. **Run local checks first** so CI isn't the first place a problem shows up — build every
-   project in the family. For `results`, building `Nlist.Results.AspNetCore` also builds the other
+   project in the family. For `results`, building `NlistId.Results.AspNetCore` also builds the other
    two through its `ProjectReference`s, but run `dotnet format` in each project:
    ```bash
    cd <project dir> && dotnet format --verify-no-changes && dotnet build
