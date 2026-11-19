@@ -13,7 +13,7 @@ on:
 permissions: {}
 
 env:
-  VERSION: 2.1.2
+  VERSION: 2.2.0
 
 jobs:
   build:
@@ -32,10 +32,10 @@ jobs:
       - name: Build
         uses: ./.github/actions/build-package
         with:
-          testProject: nlistid-telemetry/src/Nlist.Telemetry.Test/Nlist.Telemetry.Test.csproj
+          testProject: nlistid-telemetry/src/NlistId.Telemetry.Test/NlistId.Telemetry.Test.csproj
           projects: |
-            nlistid-telemetry/src/Nlist.Telemetry.Abstractions/Nlist.Telemetry.Abstractions.csproj
-            nlistid-telemetry/src/Nlist.Telemetry/Nlist.Telemetry.csproj
+            nlistid-telemetry/src/NlistId.Telemetry.Abstractions/NlistId.Telemetry.Abstractions.csproj
+            nlistid-telemetry/src/NlistId.Telemetry/NlistId.Telemetry.csproj
           version: ${{ env.VERSION }}
 
       - name: Upload the packages
