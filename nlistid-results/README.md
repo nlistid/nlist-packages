@@ -4,8 +4,9 @@ Return a `Result<T>` instead of throwing for expected failures, then map it to a
 Published by `nlistid-results.yml`.
 
 Up to 2.1.2 the packages were `Nlist.Results`, `Nlist.Results.Abstractions` and
-`Nlist.Results.AspNetCore`. Those versions stay on GitHub Packages until every consumer has moved;
-moving is the new `PackageReference` and `using NlistId.Results`.
+`Nlist.Results.AspNetCore`; `NlistId.Results` 1.0.0 is 2.1.2 under the new ids. The old versions
+stay on GitHub Packages until every consumer has moved; moving is the new `PackageReference` and
+`using NlistId.Results`.
 
 | Project | Holds | References |
 |---|---|---|
