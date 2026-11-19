@@ -5,11 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'nlistid-results/src/Nlist.Results/**'
-      - 'nlistid-results/src/Nlist.Results.Abstractions/**'
-      - 'nlistid-results/src/Nlist.Results.AspNetCore/**'
       - '.github/workflows/nlistid-results.yml'
+      - '.github/actions/build-package/**'
+      - 'nlistid-results/src/**'
   workflow_dispatch:
+
+permissions: {}
 
 env:
   VERSION: 2.1.2
@@ -20,67 +21,54 @@ jobs:
 
     permissions:
       contents: read
+      packages: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/build-package
+        with:
+          testProject: nlistid-results/src/Nlist.Results.Test/Nlist.Results.Test.csproj
+          projects: |
+            nlistid-results/src/Nlist.Results.Abstractions/Nlist.Results.Abstractions.csproj
+            nlistid-results/src/Nlist.Results/Nlist.Results.csproj
+            nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj
+          version: ${{ env.VERSION }}
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: nupkgs
+          path: nupkgs/*.nupkg
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    permissions:
       packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Print welcome message
-        run: echo "Hello! Code was pushed to ${{ github.ref }}"
-
-      - name: Show commit info
-        run: |
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Committed by: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Download the packages
+        uses: actions/download-artifact@v7
         with:
-          dotnet-version: '10.0.x'
+          name: nupkgs
+          path: nupkgs
 
-      # Runs before any pack step, so a failing test stops the release before anything is pushed.
-      - name: Test Nlist.Results
-        run: >
-          dotnet test nlistid-results/src/Nlist.Results.Test/Nlist.Results.Test.csproj
-          --configuration Release
-
-      # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
-      # command line becomes a global MSBuild property that cascades into the ProjectReference
-      # restore graph and makes NuGet throw "Ambiguous project name".
-      - name: Pack Nlist.Results.Abstractions
-        run: >
-          dotnet pack nlistid-results/src/Nlist.Results.Abstractions/Nlist.Results.Abstractions.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="Contract types for Nlist.Results"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
-
-      - name: Pack Nlist.Results
-        run: >
-          dotnet pack nlistid-results/src/Nlist.Results/Nlist.Results.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="A simple Result pattern library for .NET"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
-
-      - name: Pack Nlist.Results.AspNetCore
-        run: >
-          dotnet pack nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="ASP.NET Core HTTP result mapping for Nlist.Results"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
-
+      # GitHub Packages answers 409 Conflict for a version it already has, and
+      # --skip-duplicate passes over it, so a run without a bump publishes nothing.
       - name: Push to GitHub Packages
-        run: >
-          dotnet nuget push ./nupkgs/*.nupkg
-          --source https://nuget.pkg.github.com/nlistid/index.json
-          --api-key ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          dotnet nuget push "nupkgs/*.nupkg" \
+            --source https://nuget.pkg.github.com/nlistid/index.json \
+            --api-key "$GITHUB_TOKEN" \
+            --skip-duplicate

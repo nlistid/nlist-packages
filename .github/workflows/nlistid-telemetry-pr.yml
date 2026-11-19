@@ -1,0 +1,34 @@
+name: nlistid-telemetry-pr
+
+# Test and pack check for pull requests. Publishing lives in nlistid-telemetry.yml.
+# No branch or path filter: a required check skipped by a filter stays pending
+# and blocks the merge, so it runs on every pull request.
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Packed only to check the packages build. Nothing is pushed.
+      - name: Build
+        uses: ./.github/actions/build-package
+        with:
+          testProject: nlistid-telemetry/src/Nlist.Telemetry.Test/Nlist.Telemetry.Test.csproj
+          projects: |
+            nlistid-telemetry/src/Nlist.Telemetry.Abstractions/Nlist.Telemetry.Abstractions.csproj
+            nlistid-telemetry/src/Nlist.Telemetry/Nlist.Telemetry.csproj
+          version: 0.0.0-pr

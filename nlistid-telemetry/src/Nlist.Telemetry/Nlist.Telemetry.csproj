@@ -5,6 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Nlist.Telemetry</PackageId>
+    <Description>A simple Telemetry pattern library for .NET</Description>
+    <Authors>nlistid</Authors>
+    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

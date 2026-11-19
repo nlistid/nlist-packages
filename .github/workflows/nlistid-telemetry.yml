@@ -5,10 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'nlistid-telemetry/src/Nlist.Telemetry/**'
-      - 'nlistid-telemetry/src/Nlist.Telemetry.Abstractions/**'
       - '.github/workflows/nlistid-telemetry.yml'
+      - '.github/actions/build-package/**'
+      - 'nlistid-telemetry/src/**'
   workflow_dispatch:
+
+permissions: {}
 
 env:
   VERSION: 2.1.2
@@ -19,54 +21,53 @@ jobs:
 
     permissions:
       contents: read
+      packages: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/build-package
+        with:
+          testProject: nlistid-telemetry/src/Nlist.Telemetry.Test/Nlist.Telemetry.Test.csproj
+          projects: |
+            nlistid-telemetry/src/Nlist.Telemetry.Abstractions/Nlist.Telemetry.Abstractions.csproj
+            nlistid-telemetry/src/Nlist.Telemetry/Nlist.Telemetry.csproj
+          version: ${{ env.VERSION }}
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: nupkgs
+          path: nupkgs/*.nupkg
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    permissions:
       packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Show commit info
-        run: |
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Committed by: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Download the packages
+        uses: actions/download-artifact@v7
         with:
-          dotnet-version: '10.0.x'
+          name: nupkgs
+          path: nupkgs
 
-      # Runs before any pack step, so a failing test stops the release before anything is pushed.
-      - name: Test Nlist.Telemetry
-        run: >
-          dotnet test nlistid-telemetry/src/Nlist.Telemetry.Test/Nlist.Telemetry.Test.csproj
-          --configuration Release
-
-      # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
-      # command line becomes a global MSBuild property that cascades into the ProjectReference
-      # restore graph and makes NuGet throw "Ambiguous project name".
-      - name: Pack Nlist.Telemetry.Abstractions
-        run: >
-          dotnet pack nlistid-telemetry/src/Nlist.Telemetry.Abstractions/Nlist.Telemetry.Abstractions.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="Contract types for Nlist.Telemetry"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
-
-      - name: Pack Nlist.Telemetry
-        run: >
-          dotnet pack nlistid-telemetry/src/Nlist.Telemetry/Nlist.Telemetry.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="A simple Telemetry pattern library for .NET"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
-
+      # GitHub Packages answers 409 Conflict for a version it already has, and
+      # --skip-duplicate passes over it, so a run without a bump publishes nothing.
       - name: Push to GitHub Packages
-        run: >
-          dotnet nuget push ./nupkgs/*.nupkg
-          --source https://nuget.pkg.github.com/nlistid/index.json
-          --api-key ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          dotnet nuget push "nupkgs/*.nupkg" \
+            --source https://nuget.pkg.github.com/nlistid/index.json \
+            --api-key "$GITHUB_TOKEN" \
+            --skip-duplicate
