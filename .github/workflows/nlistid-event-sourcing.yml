@@ -13,7 +13,7 @@ on:
 permissions: {}
 
 env:
-  VERSION: 2.1.1
+  VERSION: 2.2.0
 
 jobs:
   build:
@@ -32,10 +32,10 @@ jobs:
       - name: Build
         uses: ./.github/actions/build-package
         with:
-          testProject: nlistid-event-sourcing/src/Nlist.EventSourcing.Test/Nlist.EventSourcing.Test.csproj
+          testProject: nlistid-event-sourcing/src/NlistId.EventSourcing.Test/NlistId.EventSourcing.Test.csproj
           projects: |
-            nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/Nlist.EventSourcing.Abstractions.csproj
-            nlistid-event-sourcing/src/Nlist.EventSourcing/Nlist.EventSourcing.csproj
+            nlistid-event-sourcing/src/NlistId.EventSourcing.Abstractions/NlistId.EventSourcing.Abstractions.csproj
+            nlistid-event-sourcing/src/NlistId.EventSourcing/NlistId.EventSourcing.csproj
           version: ${{ env.VERSION }}
 
       - name: Upload the packages

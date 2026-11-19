@@ -1,13 +1,13 @@
 ---
 name: release-package
-description: Cut a release of the NlistId.Results, NlistId.Telemetry or Nlist.EventSourcing package family by bumping the workflow's VERSION in a pull request and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of a package.
+description: Cut a release of the NlistId.Results, NlistId.Telemetry or NlistId.EventSourcing package family by bumping the workflow's VERSION in a pull request and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of a package.
 disable-model-invocation: true
 ---
 
 Release one of this repo's three package families (`results` → `NlistId.Results.Abstractions` +
 `NlistId.Results` + `NlistId.Results.AspNetCore`, `telemetry` → `NlistId.Telemetry.Abstractions` +
-`NlistId.Telemetry`, or `event-sourcing` → `Nlist.EventSourcing.Abstractions` +
-`Nlist.EventSourcing`). Each family publishes from its own workflow, which tests, packs and
+`NlistId.Telemetry`, or `event-sourcing` → `NlistId.EventSourcing.Abstractions` +
+`NlistId.EventSourcing`). Each family publishes from its own workflow, which tests, packs and
 pushes every package in the family under the same version. There is no combined release across
 families. The push skips a version GitHub Packages already has, so a run without a bump tests and
 packs but publishes nothing.
@@ -24,7 +24,7 @@ float to "whatever's next".
    - `event-sourcing` → `.github/workflows/nlistid-event-sourcing.yml`
 
    Its `PACKAGE_ID` is the family's main package (`NlistId.Results`, `NlistId.Telemetry` or
-   `Nlist.EventSourcing`).
+   `NlistId.EventSourcing`).
 
 2. **Check the current published version** before bumping, so the new version is actually higher:
    ```bash
@@ -34,11 +34,10 @@ float to "whatever's next".
    If this 404s (e.g. no org access from this token), fall back to comparing against the
    `env.VERSION` already in the workflow file.
 
-3. **Release what it depends on first.** `Nlist.EventSourcing` takes `PackageReference`s to
-   `Nlist.Results` and `Nlist.Results.Abstractions`, the ids `results` published before it moved
-   to `NlistId.Results`. If the release needs a newer one, release `results` first, check it
-   landed, then switch those references and their `using`s to `NlistId.Results` in the same pull
-   request as the `event-sourcing` bump.
+3. **Release what it depends on first.** `NlistId.EventSourcing` takes `PackageReference`s to
+   `NlistId.Results` and `NlistId.Results.Abstractions`. If the release needs a new
+   `NlistId.Results`, release `results` first, check it landed, then update those references in
+   the same pull request as the `event-sourcing` bump.
 
 4. **Branch, then edit `env.VERSION`** in the workflow file to the requested version
    (`way-of-working`: e.g. `feat/release-results-1-2-0`).
