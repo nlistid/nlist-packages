@@ -27,9 +27,9 @@ jobs:
       - name: Build
         uses: ./.github/actions/build-package
         with:
-          testProject: nlistid-results/src/Nlist.Results.Test/Nlist.Results.Test.csproj
+          testProject: nlistid-results/src/NlistId.Results.Test/NlistId.Results.Test.csproj
           projects: |
-            nlistid-results/src/Nlist.Results.Abstractions/Nlist.Results.Abstractions.csproj
-            nlistid-results/src/Nlist.Results/Nlist.Results.csproj
-            nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj
+            nlistid-results/src/NlistId.Results.Abstractions/NlistId.Results.Abstractions.csproj
+            nlistid-results/src/NlistId.Results/NlistId.Results.csproj
+            nlistid-results/src/NlistId.Results.AspNetCore/NlistId.Results.AspNetCore.csproj
           version: 0.0.0-pr

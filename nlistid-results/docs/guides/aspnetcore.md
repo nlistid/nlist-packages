@@ -1,4 +1,4 @@
-# Nlist.Results.AspNetCore
+# NlistId.Results.AspNetCore
 
 Turns an `IResult<T>` into an ASP.NET Core response. Failures become
 [RFC 9457](https://www.rfc-editor.org/info/rfc9457/) problem details.
@@ -40,7 +40,7 @@ FailureResult<T> failure => Http.Results.Problem(
   `StatusCode`, `Value` and `ContentType`.
 - The result is rebuilt with `Map(value => value)` before matching. `IResult<T>` is covariant, so an
   `IResult<object>` can hold a `ValidationFailureResult<string>`; rebuilding keeps its `errors`.
-- An `IResult<T>` that isn't an `Nlist.Results` type maps by `IsSuccess`: JSON of `Value`, or a
+- An `IResult<T>` that isn't an `NlistId.Results` type maps by `IsSuccess`: JSON of `Value`, or a
   problem details response with its `Code`.
 
 ## Examples

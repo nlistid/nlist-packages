@@ -1,4 +1,4 @@
-# Nlist.Results — Spec
+# NlistId.Results — Spec
 
 The rules the code must keep. Update this file when you change them.
 
@@ -6,10 +6,10 @@ The rules the code must keep. Update this file when you change them.
 
 | Project | Holds | References |
 |---|---|---|
-| `Nlist.Results.Abstractions` | `IResult<T>` | nothing (StyleCop only, private) |
-| `Nlist.Results` | `Result<T>`, the result types, `ResultFactory`, `ResultExtensions` (`Bind`/`Map`/`OnSuccess`/`OnFailure`) | Abstractions |
-| `Nlist.Results.AspNetCore` | `HttpResultFactory` | Results, Abstractions |
-| `Nlist.Results.Test` | MSTest BDD tests for `ResultExtensions` and `HttpResultFactory` | Results, Abstractions, AspNetCore |
+| `NlistId.Results.Abstractions` | `IResult<T>` | nothing (StyleCop only, private) |
+| `NlistId.Results` | `Result<T>`, the result types, `ResultFactory`, `ResultExtensions` (`Bind`/`Map`/`OnSuccess`/`OnFailure`) | Abstractions |
+| `NlistId.Results.AspNetCore` | `HttpResultFactory` | Results, Abstractions |
+| `NlistId.Results.Test` | MSTest BDD tests for `ResultExtensions` and `HttpResultFactory` | Results, Abstractions, AspNetCore |
 
 The three libraries publish together at one `VERSION` from `nlistid-results.yml`.
 Abstractions must never take a runtime dependency.
@@ -40,7 +40,7 @@ Result<T>                           Code
   So an `IResult<T>` can hold a `ValidationFailureResult<TDerived>`, and a type switch on
   `ValidationFailureResult<T>` misses it. Library code never switches on the generic failure types of an
   `IResult<T>` it was given: it rebuilds the result first (see §3).
-- Failure types live in `Failures/` but use `namespace Nlist.Results;`.
+- Failure types live in `Failures/` but use `namespace NlistId.Results;`.
 
 ## 3. Bind / Map
 
@@ -74,10 +74,10 @@ The task must be a `Task<IResult<T>>`, not a `Task<Result<T>>`: `Task` is not co
 
 | Failure | Becomes |
 |---|---|
-| each `Nlist.Results` failure type | the same type for `TOut`, with `Detail`, `Errors`, `RetryAfter`, `Code` |
+| each `NlistId.Results` failure type | the same type for `TOut`, with `Detail`, `Errors`, `RetryAfter`, `Code` |
 | plain `FailureResult<T>` | `FailureResult<TOut>` |
 | a failure type of your own | whatever its `Propagate` override returns; a plain 400 `FailureResult<TOut>` without one |
-| an `IResult<T>` from outside `Nlist.Results` | `StatusCodeFailureResult<TOut>` with its `Code` |
+| an `IResult<T>` from outside `NlistId.Results` | `StatusCodeFailureResult<TOut>` with its `Code` |
 
 - Each failure type rebuilds itself by overriding the public virtual `FailureResult<T>.Propagate<TOut>()`,
   which also implements the non-generic internal `IFailureResult` that `ResultExtensions` calls. A type
@@ -122,7 +122,7 @@ returns the same result object: nothing is rebuilt, so no data can be lost.
 | `ValidationFailureResult<T>` | `ValidationProblem` with `errors` |
 | `RateLimitedFailureResult<T>` | `Problem`; when `RetryAfter` is set, adds a `Retry-After` header (whole seconds, rounded up; a negative value is sent as is) |
 | any other failure, including one of your own | `Problem` with its `Code` |
-| not an `Nlist.Results` type | by `IsSuccess`: JSON of `Value`, or `Problem` with its `Code` |
+| not an `NlistId.Results` type | by `IsSuccess`: JSON of `Value`, or `Problem` with its `Code` |
 
 - `detail` is omitted when `Detail` is `null`.
 - Data on a failure type without its own arm, such as one of your own, is not sent.
