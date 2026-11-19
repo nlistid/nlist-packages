@@ -1,0 +1,64 @@
+name: build-package
+description: 'Test a package family, then pack each of its packages'
+
+inputs:
+  testProject:
+    description: 'Test project that covers the family'
+    required: true
+  projects:
+    description: 'Projects to pack, one per line'
+    required: true
+  version:
+    description: 'Version stamped on the packages; empty leaves each project its own'
+    required: false
+    default: ''
+  output:
+    description: 'Folder the packages are written to, under the workspace'
+    required: false
+    default: 'nupkgs'
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install the .NET SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: '10.0.x'
+
+    # Nlist.EventSourcing restores Nlist.Results from GitHub Packages. NuGet
+    # reads the source's credentials from NuGetPackageSourceCredentials_github-nlist,
+    # so no file holds the token.
+    - name: Add the GitHub Packages source
+      shell: bash
+      run: dotnet nuget add source https://nuget.pkg.github.com/nlistid/index.json --name github-nlist
+
+    # Runs before any pack step, so a failing test stops the release before
+    # anything is pushed.
+    - name: Test
+      shell: bash
+      env:
+        TEST_PROJECT: ${{ inputs.testProject }}
+        NuGetPackageSourceCredentials_github-nlist: Username=github;Password=${{ github.token }}
+      run: dotnet test "$TEST_PROJECT" --configuration Release
+
+    # PackageId and the rest of each package's metadata are set in its .csproj,
+    # not passed here: a -p:PackageId on the command line becomes a global
+    # MSBuild property that cascades into the ProjectReference restore graph and
+    # makes NuGet throw "Ambiguous project name".
+    - name: Pack
+      shell: bash
+      env:
+        PROJECTS: ${{ inputs.projects }}
+        VERSION: ${{ inputs.version }}
+        OUTPUT: ${{ inputs.output }}
+        NuGetPackageSourceCredentials_github-nlist: Username=github;Password=${{ github.token }}
+      run: |
+        while read -r project; do
+          if [ -n "$project" ]; then
+            dotnet pack "$project" \
+              --configuration Release \
+              --output "$OUTPUT" \
+              ${VERSION:+"-p:Version=$VERSION"}
+          fi
+        done <<< "$PROJECTS"

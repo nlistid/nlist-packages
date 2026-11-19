@@ -5,13 +5,18 @@ on:
     branches:
       - main
     paths:
-      - 'nlistid-event-sourcing/src/Nlist.EventSourcing/**'
-      - 'nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/**'
       - '.github/workflows/nlistid-event-sourcing.yml'
+      - '.github/actions/build-package/**'
+      - 'nlistid-event-sourcing/src/**'
   workflow_dispatch:
+
+permissions: {}
 
 env:
   VERSION: 2.1.1
+  # Every package in the family ships at the same version, so the guard checks
+  # the main one.
+  PACKAGE_ID: Nlist.EventSourcing
 
 jobs:
   build:
@@ -19,67 +24,84 @@ jobs:
 
     permissions:
       contents: read
+      packages: read
+
+    outputs:
+      publish: ${{ steps.guard.outputs.publish }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/build-package
+        with:
+          testProject: nlistid-event-sourcing/src/Nlist.EventSourcing.Test/Nlist.EventSourcing.Test.csproj
+          projects: |
+            nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/Nlist.EventSourcing.Abstractions.csproj
+            nlistid-event-sourcing/src/Nlist.EventSourcing/Nlist.EventSourcing.csproj
+          version: ${{ env.VERSION }}
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: nupkgs
+          path: nupkgs/*.nupkg
+          if-no-files-found: error
+          retention-days: 1
+
+      # GitHub Packages answers 404 for a package never published, so that
+      # releases too. Any other answer stops the run.
+      - name: Check whether this version is already published
+        id: guard
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          package_path=$(printf '%s' "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
+
+          status=$(curl --silent \
+            --output "$RUNNER_TEMP/versions.json" \
+            --write-out '%{http_code}' \
+            --user "github:$GITHUB_TOKEN" \
+            "https://nuget.pkg.github.com/nlistid/download/$package_path/index.json")
+
+          if [ "$status" = 200 ] && jq --exit-status --arg version "$VERSION" 'any(.versions[]; . == $version)' "$RUNNER_TEMP/versions.json" > /dev/null; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "$PACKAGE_ID $VERSION is already published - nothing will be released"
+          elif [ "$status" = 200 ] || [ "$status" = 404 ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "$VERSION is not on the registry - this run releases it"
+          else
+            echo "::error::GitHub Packages answered $status"
+            exit 1
+          fi
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+
+    permissions:
       packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Print welcome message
-        run: echo "Hello! Code was pushed to ${{ github.ref }}"
-
-      - name: Show commit info
-        run: |
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Committed by: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Install the .NET SDK
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
-      # Both projects take a PackageReference to Nlist.Results packages, which only exist on
-      # GitHub Packages, so restore needs this source.
-      - name: Add GitHub Packages source
-        run: >
-          dotnet nuget add source https://nuget.pkg.github.com/nlistid/index.json
-          --name github-nlist
-          --username ${{ github.actor }}
-          --password ${{ secrets.GITHUB_TOKEN }}
-          --store-password-in-clear-text
-
-      # Runs before any pack step, so a failing test stops the release before anything is pushed.
-      - name: Test Nlist.EventSourcing
-        run: >
-          dotnet test nlistid-event-sourcing/src/Nlist.EventSourcing.Test/Nlist.EventSourcing.Test.csproj
-          --configuration Release
-
-      # PackageId is set in each .csproj, not passed here — a /p:PackageId override on the
-      # command line becomes a global MSBuild property that cascades into the ProjectReference
-      # restore graph and makes NuGet throw "Ambiguous project name".
-      - name: Pack Nlist.EventSourcing.Abstractions
-        run: >
-          dotnet pack nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/Nlist.EventSourcing.Abstractions.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="Contract types for Nlist.EventSourcing"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
-
-      - name: Pack Nlist.EventSourcing
-        run: >
-          dotnet pack nlistid-event-sourcing/src/Nlist.EventSourcing/Nlist.EventSourcing.csproj
-          --configuration Release
-          --output ./nupkgs
-          /p:Version=${{ env.VERSION }}
-          /p:Authors=nlistid
-          /p:Description="Event-sourced aggregates for .NET"
-          /p:RepositoryUrl=https://github.com/${{ github.repository }}
+      - name: Download the packages
+        uses: actions/download-artifact@v7
+        with:
+          name: nupkgs
+          path: nupkgs
 
       - name: Push to GitHub Packages
-        run: >
-          dotnet nuget push ./nupkgs/*.nupkg
-          --source https://nuget.pkg.github.com/nlistid/index.json
-          --api-key ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          dotnet nuget push "nupkgs/*.nupkg" \
+            --source https://nuget.pkg.github.com/nlistid/index.json \
+            --api-key "$GITHUB_TOKEN"

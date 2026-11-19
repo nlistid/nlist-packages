@@ -41,5 +41,5 @@ Each folder is a package family that builds, versions and publishes on its own.
 
 1. Branch, edit, then build and test from the project's folder.
 2. Open a pull request.
-3. After merge, bump `VERSION` in the family's workflow to publish. A run without a bump fails,
-   because GitHub Packages rejects an existing version.
+3. To publish, bump `VERSION` in the family's workflow in a pull request. Merging it publishes. A
+   run without a bump tests and packs but publishes nothing, as that version is already there.

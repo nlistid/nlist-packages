@@ -1,0 +1,33 @@
+name: nlistid-results-pr
+
+# Test and pack check for pull requests. Publishing lives in nlistid-results.yml.
+# No branch or path filter: a required check skipped by a filter stays pending
+# and blocks the merge, so it runs on every pull request.
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/build-package
+        with:
+          testProject: nlistid-results/src/Nlist.Results.Test/Nlist.Results.Test.csproj
+          projects: |
+            nlistid-results/src/Nlist.Results.Abstractions/Nlist.Results.Abstractions.csproj
+            nlistid-results/src/Nlist.Results/Nlist.Results.csproj
+            nlistid-results/src/Nlist.Results.AspNetCore/Nlist.Results.AspNetCore.csproj

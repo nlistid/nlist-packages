@@ -4,6 +4,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Nlist.Results</PackageId>
+    <Description>A simple Result pattern library for .NET</Description>
+    <Authors>nlistid</Authors>
+    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup>

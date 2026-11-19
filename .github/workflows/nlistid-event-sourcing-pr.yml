@@ -1,0 +1,32 @@
+name: nlistid-event-sourcing-pr
+
+# Test and pack check for pull requests. Publishing lives in nlistid-event-sourcing.yml.
+# No branch or path filter: a required check skipped by a filter stays pending
+# and blocks the merge, so it runs on every pull request.
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/build-package
+        with:
+          testProject: nlistid-event-sourcing/src/Nlist.EventSourcing.Test/Nlist.EventSourcing.Test.csproj
+          projects: |
+            nlistid-event-sourcing/src/Nlist.EventSourcing.Abstractions/Nlist.EventSourcing.Abstractions.csproj
+            nlistid-event-sourcing/src/Nlist.EventSourcing/Nlist.EventSourcing.csproj

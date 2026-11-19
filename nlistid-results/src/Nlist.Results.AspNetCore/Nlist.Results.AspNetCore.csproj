@@ -5,6 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Nlist.Results.AspNetCore</PackageId>
+    <Description>ASP.NET Core HTTP result mapping for Nlist.Results</Description>
+    <Authors>nlistid</Authors>
+    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup>

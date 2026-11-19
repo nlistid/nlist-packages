@@ -1,0 +1,12 @@
+# Proposes updates to the actions the workflows and the composite actions use,
+# so their major tags stay current.
+
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly

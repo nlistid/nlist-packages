@@ -53,4 +53,4 @@ Tests follow `/bdd-tests`: a scenario and tests pair per feature folder (`Aggreg
 
 - `.github/workflows/nlistid-event-sourcing.yml` publishes both libraries at its `env.VERSION`.
 - It adds the GitHub Packages source, then runs the tests before packing.
-- `/release-package` covers only `results` and `telemetry`, but the steps are the same.
+- Release with `/release-package event-sourcing <version>`.
