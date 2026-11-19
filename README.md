@@ -1,4 +1,4 @@
-# nlist-packages
+# nlistid-packages
 
 Small, focused .NET 10 libraries for building services. Published to GitHub Packages.
 

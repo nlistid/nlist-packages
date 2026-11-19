@@ -10,7 +10,7 @@
     <PackageId>Nlist.Results.Abstractions</PackageId>
     <Description>Contract types for Nlist.Results</Description>
     <Authors>nlistid</Authors>
-    <RepositoryUrl>https://github.com/nlistid/nlist-packages</RepositoryUrl>
+    <RepositoryUrl>https://github.com/nlistid/nlistid-packages</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup>
