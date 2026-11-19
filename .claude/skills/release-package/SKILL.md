@@ -1,12 +1,12 @@
 ---
 name: release-package
-description: Cut a release of the NlistId.Results, Nlist.Telemetry or Nlist.EventSourcing package family by bumping the workflow's VERSION in a pull request and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of a package.
+description: Cut a release of the NlistId.Results, NlistId.Telemetry or Nlist.EventSourcing package family by bumping the workflow's VERSION in a pull request and verifying it published to GitHub Packages. Use when the user asks to release, publish, or bump the version of a package.
 disable-model-invocation: true
 ---
 
 Release one of this repo's three package families (`results` → `NlistId.Results.Abstractions` +
-`NlistId.Results` + `NlistId.Results.AspNetCore`, `telemetry` → `Nlist.Telemetry.Abstractions` +
-`Nlist.Telemetry`, or `event-sourcing` → `Nlist.EventSourcing.Abstractions` +
+`NlistId.Results` + `NlistId.Results.AspNetCore`, `telemetry` → `NlistId.Telemetry.Abstractions` +
+`NlistId.Telemetry`, or `event-sourcing` → `Nlist.EventSourcing.Abstractions` +
 `Nlist.EventSourcing`). Each family publishes from its own workflow, which tests, packs and
 pushes every package in the family under the same version. There is no combined release across
 families. The push skips a version GitHub Packages already has, so a run without a bump tests and
@@ -23,7 +23,7 @@ float to "whatever's next".
    - `telemetry` → `.github/workflows/nlistid-telemetry.yml`
    - `event-sourcing` → `.github/workflows/nlistid-event-sourcing.yml`
 
-   Its `PACKAGE_ID` is the family's main package (`NlistId.Results`, `Nlist.Telemetry` or
+   Its `PACKAGE_ID` is the family's main package (`NlistId.Results`, `NlistId.Telemetry` or
    `Nlist.EventSourcing`).
 
 2. **Check the current published version** before bumping, so the new version is actually higher:

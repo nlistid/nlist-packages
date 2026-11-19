@@ -12,7 +12,7 @@ docs go.
 | Folder | Packages | Guide |
 |---|---|---|
 | `nlistid-results/` | `NlistId.Results`, `.Abstractions`, `.AspNetCore` | `nlistid-results/docs/AGENTS.md` |
-| `nlistid-telemetry/` | `Nlist.Telemetry`, `.Abstractions` | `nlistid-telemetry/docs/AGENTS.md` |
+| `nlistid-telemetry/` | `NlistId.Telemetry`, `.Abstractions` | `nlistid-telemetry/docs/AGENTS.md` |
 | `nlistid-event-sourcing/` | `Nlist.EventSourcing`, `.Abstractions` | `nlistid-event-sourcing/docs/AGENTS.md` |
 
 `docs/TODO.md` lists ideas for new families. None are started.
@@ -38,7 +38,7 @@ docs go.
 | Workflow | Pull request check | Publishes |
 |---|---|---|
 | `nlistid-results.yml` | `nlistid-results-pr.yml` | `NlistId.Results`, `NlistId.Results.Abstractions`, `NlistId.Results.AspNetCore` |
-| `nlistid-telemetry.yml` | `nlistid-telemetry-pr.yml` | `Nlist.Telemetry`, `Nlist.Telemetry.Abstractions` |
+| `nlistid-telemetry.yml` | `nlistid-telemetry-pr.yml` | `NlistId.Telemetry`, `NlistId.Telemetry.Abstractions` |
 | `nlistid-event-sourcing.yml` | `nlistid-event-sourcing-pr.yml` | `Nlist.EventSourcing`, `Nlist.EventSourcing.Abstractions` |
 
 - Every family's `-pr.yml` tests and packs it on each pull request, through the same composite
