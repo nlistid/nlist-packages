@@ -1,0 +1,11 @@
+{
+  "extraKnownMarketplaces": {
+    "nlistid": {
+      "source": { "source": "github", "repo": "nlistid/nlistid-skills" }
+    }
+  },
+  "enabledPlugins": {
+    "nlistid-repo@nlistid": true,
+    "nlistid-dotnet@nlistid": true
+  }
+}

@@ -6,7 +6,8 @@ Guidance for Claude Code (claude.ai/code) in this repository.
 
 Three independent .NET package families. Each builds, versions and publishes on its own and has
 its own `docs/AGENTS.md` with its projects, build, tests and release. No root `.sln` — run
-`dotnet` commands from each project's folder. `/repo-structure` says where folders and docs go.
+`dotnet` commands from each project's folder. `/nlistid-repo:repo-structure` says where folders and
+docs go.
 
 | Folder | Packages | Guide |
 |---|---|---|
@@ -19,7 +20,9 @@ its own `docs/AGENTS.md` with its projects, build, tests and release. No root `.
 ## Shared
 
 - The root `.editorconfig` applies to every project (4 spaces, file-scoped namespaces).
-- Skills in `.claude/skills/`: `/code-structure`, `/bdd-tests`, `/release-package`, `/repo-structure`.
+- Skills: `/release-package` in `.claude/skills/`. The shared ones come from the `nlistid`
+  plugins enabled in `.claude/settings.json`: `/nlistid-dotnet:code-structure`,
+  `/nlistid-dotnet:bdd-tests`, `/nlistid-repo:repo-structure` and the rest.
 - Code style: camelCase private fields with no `_`, `this.` qualification, file-scoped namespaces.
   Only `nlistid-results` enforces it, with StyleCop; elsewhere match the surrounding code.
 
